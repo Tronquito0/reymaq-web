@@ -1,0 +1,438 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #111111;
+  background: #fafafa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+::selection {
+  background: #d71920;
+  color: white;
+}
+
+@layer components {
+  .container {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8;
+  }
+
+  .section {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .section-title {
+    @apply font-display text-[clamp(2rem,4vw,3.6rem)] font-black uppercase leading-tight;
+  }
+
+  .eyebrow {
+    @apply inline-flex w-fit border-l-4 border-reyred bg-reyred/10 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-reyred;
+  }
+
+  .nav-link {
+    @apply text-sm font-extrabold text-white/70 transition hover:text-white focus:outline-none focus:text-white;
+  }
+
+  .btn {
+    @apply inline-flex min-h-12 items-center gap-2 px-5 py-3 text-sm font-black transition focus:outline-none focus:ring-4;
+  }
+
+  .btn-primary {
+    @apply bg-reyred text-white shadow-redglow hover:bg-darkred focus:ring-reyred/30;
+  }
+
+  .btn-light {
+    @apply bg-white text-graphite hover:bg-zinc-200 focus:ring-white/30;
+  }
+
+  .btn-ghost {
+    @apply border border-white/20 text-white hover:border-reyred hover:bg-reyred/10 focus:ring-reyred/30;
+  }
+
+  .hero-card {
+    @apply flex min-h-16 items-center gap-3 border border-white/10 bg-white/[0.055] p-4 font-display text-lg font-black text-white transition hover:border-reyred hover:bg-reyred/10;
+  }
+
+  .machine-panel {
+    @apply relative overflow-hidden border border-white/10 bg-carbon/95 p-5 shadow-2xl sm:p-7;
+  }
+
+  .machine-panel::before {
+    content: "";
+    position: absolute;
+    inset: -35% auto auto -18%;
+    width: 210px;
+    height: 520px;
+    background: rgba(215, 25, 32, 0.22);
+    transform: rotate(22deg);
+    pointer-events: none;
+  }
+
+  .machine-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .category-card {
+    @apply border border-black/10 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-reyred/45 hover:shadow-hard;
+  }
+
+  .product-card {
+    @apply border border-black/10 bg-warm p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-reyred/40 hover:shadow-hard;
+  }
+
+  .tag {
+    @apply shrink-0 bg-reyred px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-white;
+  }
+
+  .impact-card {
+    @apply border border-white/10 bg-white/[0.055] p-6 transition hover:border-reyred hover:bg-white/[0.075];
+  }
+
+  .benefit-card {
+    @apply flex min-h-20 items-center gap-3 border border-black/10 bg-white p-4 text-sm font-extrabold text-graphite shadow-sm;
+  }
+
+  .industrial-strip {
+    @apply relative overflow-hidden bg-graphite shadow-hard;
+  }
+
+  .industrial-strip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(115deg, rgba(215, 25, 32, 0.24), transparent 34%),
+      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 14px);
+    pointer-events: none;
+  }
+
+  .industrial-strip > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .client-pill {
+    @apply border border-white/15 bg-white/10 px-4 py-3 text-sm font-black text-white/85;
+  }
+
+  .field {
+    @apply grid gap-2 text-sm font-black text-graphite;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    @apply min-h-12 border border-black/10 bg-warm px-4 py-3 font-medium text-graphite outline-none transition placeholder:text-steel/70 focus:border-reyred focus:ring-4 focus:ring-reyred/10;
+  }
+
+  .field textarea {
+    @apply min-h-32 resize-y;
+  }
+
+  .catalog-shell {
+    @apply border border-black/10 bg-warm p-4 shadow-hard sm:p-6;
+  }
+
+  .catalog-search {
+    @apply min-h-14 w-full border border-black/10 bg-white py-3 pl-12 pr-4 text-base font-bold text-graphite outline-none transition placeholder:text-steel/70 focus:border-reyred focus:ring-4 focus:ring-reyred/10;
+  }
+
+  .filter-pill {
+    @apply shrink-0 border border-black/10 bg-white px-4 py-3 text-sm font-black text-graphite transition hover:border-reyred hover:text-reyred;
+  }
+
+  .filter-pill-active {
+    @apply border-reyred bg-reyred text-white hover:text-white;
+  }
+
+  .quote-box {
+    @apply border border-black/10 bg-white p-5 shadow-sm;
+  }
+
+  .stock-badge {
+    @apply inline-flex px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em];
+  }
+
+  .stock-available {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .stock-consult {
+    @apply bg-zinc-200 text-zinc-800;
+  }
+
+  .stock-preorder {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .stock-low {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .soft-badge {
+    @apply inline-flex border border-black/10 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-steel;
+  }
+
+  .btn-outline-dark {
+    @apply border border-black/15 bg-white text-graphite hover:border-reyred hover:text-reyred focus:ring-reyred/20;
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-sm;
+  }
+
+  .product-modal {
+    @apply relative max-h-[90svh] w-full max-w-3xl overflow-y-auto bg-white p-6 shadow-2xl sm:p-8;
+  }
+
+  .detail-box {
+    @apply border border-black/10 bg-warm p-4;
+  }
+
+  .detail-box span {
+    @apply block text-xs font-black uppercase tracking-[0.15em] text-steel;
+  }
+
+  .detail-box strong {
+    @apply mt-2 block font-display text-lg font-black text-graphite;
+  }
+
+  .feature-panel {
+    @apply border border-black/10 bg-warm p-6 shadow-sm sm:p-8;
+  }
+
+  .pro-card {
+    @apply flex min-h-24 items-center gap-4 border border-white/10 bg-white/[0.055] p-5 text-sm font-black leading-6 text-white/85;
+  }
+
+  .pro-card svg {
+    @apply shrink-0 text-reyred;
+  }
+
+  .promo-card {
+    @apply border border-black/10 bg-warm p-6 shadow-sm transition hover:-translate-y-1 hover:border-reyred/40 hover:shadow-hard;
+  }
+
+  .faq-item {
+    @apply border border-black/10 bg-warm p-5;
+  }
+
+  .faq-item summary {
+    @apply flex cursor-pointer items-center gap-3 font-display text-lg font-black text-graphite;
+  }
+
+  .faq-item summary::marker {
+    content: "";
+  }
+
+  .faq-item p {
+    @apply mt-4 pl-8 text-sm leading-7 text-steel;
+  }
+
+  .review-card {
+    @apply border border-white/10 bg-white/[0.055] p-6 shadow-sm;
+  }
+
+  .feature-mini {
+    @apply border border-black/10 bg-white p-5 shadow-sm;
+  }
+
+  .feature-mini h3 {
+    @apply mt-4 font-display text-lg font-black text-graphite;
+  }
+
+  .feature-mini p {
+    @apply mt-2 text-sm leading-6 text-steel;
+  }
+
+  .admin-panel {
+    @apply bg-graphite p-6 shadow-hard sm:p-8;
+  }
+
+  .admin-row {
+    @apply flex items-center gap-3 border border-white/10 bg-white/[0.055] p-4 text-sm font-black text-white/85;
+  }
+
+  .admin-row svg {
+    @apply shrink-0 text-reyred;
+  }
+
+  .admin-row strong {
+    @apply ml-auto bg-reyred px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-white;
+  }
+
+  .control-shell {
+    @apply overflow-hidden border border-white/10 bg-[#121214] shadow-2xl;
+  }
+
+  .control-topbar {
+    @apply flex flex-col gap-4 border-b border-white/10 bg-white/[0.035] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .control-tabs {
+    @apply flex gap-2 overflow-x-auto border-b border-white/10 bg-black/20 p-3;
+  }
+
+  .control-tab {
+    @apply inline-flex min-h-12 shrink-0 items-center gap-2 border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-white/70 transition hover:border-reyred hover:text-white;
+  }
+
+  .control-tab-active {
+    @apply border-reyred bg-reyred text-white;
+  }
+
+  .control-content {
+    @apply p-4 sm:p-6;
+  }
+
+  .control-card {
+    @apply border border-white/10 bg-white/[0.055] p-5 shadow-sm;
+  }
+
+  .control-card h4 {
+    @apply font-display text-xl font-black text-white;
+  }
+
+  .field-dark {
+    @apply mt-4 text-white;
+  }
+
+  .field-dark input,
+  .field-dark select,
+  .field-dark textarea {
+    @apply border-white/10 bg-black/20 text-white placeholder:text-white/40 focus:border-reyred;
+  }
+
+  .field-dark option {
+    @apply bg-graphite text-white;
+  }
+
+  .admin-search {
+    @apply min-h-12 w-full border border-white/10 bg-black/20 py-3 pl-11 pr-4 text-sm font-bold text-white outline-none placeholder:text-white/40 focus:border-reyred focus:ring-4 focus:ring-reyred/10;
+  }
+
+  .admin-table {
+    @apply grid gap-2;
+  }
+
+  .admin-table-row {
+    @apply flex items-center justify-between gap-4 border border-white/10 bg-black/20 p-4;
+  }
+
+  .admin-table-row strong {
+    @apply block font-display text-base font-black text-white;
+  }
+
+  .admin-table-row span {
+    @apply mt-1 block text-xs font-bold text-white/50;
+  }
+
+  .ok-text {
+    @apply text-emerald-300;
+  }
+
+  .alert-text {
+    @apply text-reyred;
+  }
+
+  .crm-row {
+    @apply grid gap-4 border border-white/10 bg-white/[0.055] p-5 md:grid-cols-[1fr_220px] md:items-center;
+  }
+
+  .crm-row span {
+    @apply text-xs font-black uppercase tracking-[0.16em] text-reyred;
+  }
+
+  .crm-row h4 {
+    @apply mt-2 font-display text-xl font-black text-white;
+  }
+
+  .crm-row p {
+    @apply mt-2 text-sm leading-6 text-white/65;
+  }
+
+  .crm-row select {
+    @apply min-h-12 border border-white/10 bg-black/20 px-4 py-3 text-sm font-black text-white outline-none focus:border-reyred;
+  }
+
+  .crm-row option {
+    @apply bg-graphite text-white;
+  }
+
+  .metric-card {
+    @apply border border-white/10 bg-white/[0.055] p-5;
+  }
+
+  .metric-card span {
+    @apply text-xs font-black uppercase tracking-[0.16em] text-white/55;
+  }
+
+  .metric-card strong {
+    @apply mt-4 block font-display text-4xl font-black text-white;
+  }
+
+  .metric-card p {
+    @apply mt-3 text-sm font-black text-reyred;
+  }
+
+  .map-placeholder {
+    @apply relative min-h-[360px] overflow-hidden bg-graphite p-8 sm:p-10;
+  }
+
+  .map-grid {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+      linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+      radial-gradient(circle at 68% 48%, rgba(215, 25, 32, 0.45), transparent 22%);
+    background-size: 38px 38px, 38px 38px, cover;
+    opacity: 0.65;
+  }
+
+  .footer-title {
+    @apply font-display text-sm font-black uppercase tracking-[0.18em] text-white;
+  }
+
+  .footer-link {
+    @apply text-sm text-white/60 transition hover:text-white;
+  }
+}
+
+.industrial-grid {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(215, 25, 32, 0.16), transparent 36%);
+  background-size: 44px 44px, 44px 44px, cover;
+}
+
+@media (max-width: 420px) {
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tag {
+    max-width: 112px;
+    text-align: center;
+  }
+}
