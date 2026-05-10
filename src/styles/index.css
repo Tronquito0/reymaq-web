@@ -34,6 +34,10 @@ body {
     @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8;
   }
 
+  .admin-container {
+    @apply mx-auto w-full max-w-[1520px] px-3 sm:px-5 xl:px-7;
+  }
+
   .section {
     @apply py-16 sm:py-20 lg:py-24;
   }
@@ -304,7 +308,7 @@ body {
   }
 
   .control-content {
-    @apply p-4 sm:p-6;
+    @apply p-3 sm:p-4 xl:p-5;
   }
 
   .control-card {
@@ -354,7 +358,7 @@ body {
   }
 
   .admin-products-toolbar {
-    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 lg:grid-cols-[1fr_150px_auto_auto] lg:items-end;
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-3 lg:grid-cols-[minmax(260px,1fr)_130px_auto_auto] lg:items-end xl:p-4;
   }
 
   .admin-margin-field {
@@ -366,13 +370,13 @@ body {
   }
 
   .admin-inventory-layout {
-    @apply grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_420px];
+    @apply grid gap-3 xl:grid-cols-[220px_minmax(0,1fr)_360px] 2xl:grid-cols-[250px_minmax(0,1fr)_410px];
   }
 
   .admin-departments,
   .admin-inventory-table-wrap,
   .admin-editor {
-    @apply min-w-0 border border-white/10 bg-white/[0.045] p-4;
+    @apply min-w-0 border border-white/10 bg-white/[0.045] p-3 xl:p-4;
   }
 
   .admin-panel-title {
@@ -380,11 +384,11 @@ body {
   }
 
   .admin-department-list {
-    @apply grid max-h-[620px] gap-2 overflow-y-auto pr-1;
+    @apply grid max-h-[650px] gap-1 overflow-y-auto pr-1;
   }
 
   .admin-department {
-    @apply flex min-h-11 items-center justify-between gap-3 border border-white/10 bg-black/20 px-3 py-2 text-left text-xs font-black uppercase tracking-[0.08em] text-white/60 transition hover:border-reyred hover:text-white;
+    @apply grid min-h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border border-white/10 bg-black/20 px-3 py-2 text-left text-[11px] font-black uppercase tracking-[0.06em] text-white/60 transition hover:border-reyred hover:text-white;
   }
 
   .admin-department span {
@@ -400,15 +404,15 @@ body {
   }
 
   .admin-table-actions {
-    @apply mb-3 flex flex-col gap-3 text-xs font-black uppercase tracking-[0.12em] text-white/55 sm:flex-row sm:items-center sm:justify-between;
+    @apply mb-3 flex flex-col gap-2 text-[11px] font-black uppercase tracking-[0.1em] text-white/55 sm:flex-row sm:items-center sm:justify-between;
   }
 
   .inventory-table {
-    @apply max-h-[620px] overflow-auto border border-white/10 bg-black/25;
+    @apply max-h-[650px] overflow-auto border border-white/10 bg-black/25;
   }
 
   .inventory-row {
-    @apply grid min-w-[860px] grid-cols-[36px_110px_minmax(260px,1fr)_110px_110px_100px_110px] items-center gap-2 border-b border-white/10 px-3 py-2 text-left text-sm text-white/70;
+    @apply grid min-w-[650px] grid-cols-[28px_82px_minmax(170px,1fr)_78px_78px_70px_78px] items-center gap-2 border-b border-white/10 px-2.5 py-2 text-left text-xs text-white/70 2xl:grid-cols-[30px_100px_minmax(240px,1fr)_90px_90px_80px_90px];
   }
 
   button.inventory-row {
@@ -416,7 +420,7 @@ body {
   }
 
   .inventory-head {
-    @apply sticky top-0 z-10 bg-[#1b1b1d] text-xs font-black uppercase tracking-[0.12em] text-white/50;
+    @apply sticky top-0 z-10 bg-[#1b1b1d] text-[10px] font-black uppercase tracking-[0.1em] text-white/50;
   }
 
   .inventory-row strong {
@@ -440,7 +444,7 @@ body {
   }
 
   .admin-pager {
-    @apply mt-3 flex items-center justify-between gap-3 text-sm font-black text-white/65;
+    @apply mt-3 flex items-center justify-between gap-3 text-xs font-black text-white/65 sm:text-sm;
   }
 
   .admin-pager button {
@@ -448,11 +452,15 @@ body {
   }
 
   .admin-product-card {
-    @apply border border-white/10 bg-black/20 p-4;
+    @apply border border-white/10 bg-black/20 p-3 xl:p-4;
   }
 
   .admin-product-head {
-    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+    @apply flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .admin-product-head h4 {
+    @apply mt-1 text-base leading-tight xl:text-lg;
   }
 
   .admin-check {
@@ -464,7 +472,7 @@ body {
   }
 
   .admin-visibility {
-    @apply inline-flex min-h-10 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/60 transition hover:border-reyred hover:text-white;
+    @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-black uppercase tracking-[0.1em] text-white/60 transition hover:border-reyred hover:text-white;
   }
 
   .admin-visibility.is-live {
@@ -476,7 +484,7 @@ body {
   }
 
   .admin-price-summary span {
-    @apply inline-flex min-h-10 items-center gap-2 border border-white/10 bg-white/[0.045] px-3 py-2 text-sm font-black text-white/75;
+    @apply inline-flex min-h-10 items-center gap-2 border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-white/75;
   }
 
   .admin-notice {

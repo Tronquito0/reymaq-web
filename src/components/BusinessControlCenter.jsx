@@ -46,7 +46,7 @@ export default function BusinessControlCenter() {
 
   return (
     <section id="gestion" className="section bg-graphite text-white">
-      <div className="container">
+      <div className="admin-container">
         <SectionHeader
           eyebrow="Control del negocio"
           title="Panel operativo ReyMaq"
