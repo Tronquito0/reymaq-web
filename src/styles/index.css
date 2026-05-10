@@ -365,6 +365,88 @@ body {
     @apply grid max-h-[760px] gap-4 overflow-y-auto pr-1;
   }
 
+  .admin-inventory-layout {
+    @apply grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_420px];
+  }
+
+  .admin-departments,
+  .admin-inventory-table-wrap,
+  .admin-editor {
+    @apply min-w-0 border border-white/10 bg-white/[0.045] p-4;
+  }
+
+  .admin-panel-title {
+    @apply mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/60;
+  }
+
+  .admin-department-list {
+    @apply grid max-h-[620px] gap-2 overflow-y-auto pr-1;
+  }
+
+  .admin-department {
+    @apply flex min-h-11 items-center justify-between gap-3 border border-white/10 bg-black/20 px-3 py-2 text-left text-xs font-black uppercase tracking-[0.08em] text-white/60 transition hover:border-reyred hover:text-white;
+  }
+
+  .admin-department span {
+    @apply min-w-0 truncate;
+  }
+
+  .admin-department strong {
+    @apply shrink-0 text-white;
+  }
+
+  .admin-department.is-active {
+    @apply border-reyred bg-reyred text-white;
+  }
+
+  .admin-table-actions {
+    @apply mb-3 flex flex-col gap-3 text-xs font-black uppercase tracking-[0.12em] text-white/55 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .inventory-table {
+    @apply max-h-[620px] overflow-auto border border-white/10 bg-black/25;
+  }
+
+  .inventory-row {
+    @apply grid min-w-[860px] grid-cols-[36px_110px_minmax(260px,1fr)_110px_110px_100px_110px] items-center gap-2 border-b border-white/10 px-3 py-2 text-left text-sm text-white/70;
+  }
+
+  button.inventory-row {
+    @apply w-full transition hover:bg-white/[0.055] hover:text-white;
+  }
+
+  .inventory-head {
+    @apply sticky top-0 z-10 bg-[#1b1b1d] text-xs font-black uppercase tracking-[0.12em] text-white/50;
+  }
+
+  .inventory-row strong {
+    @apply truncate font-bold text-white;
+  }
+
+  .inventory-row input {
+    @apply size-4 accent-reyred;
+  }
+
+  .inventory-row.is-selected {
+    @apply bg-reyred/15 text-white;
+  }
+
+  .sale-price {
+    @apply font-black text-emerald-300;
+  }
+
+  .inventory-empty {
+    @apply p-5 text-sm font-bold text-white/60;
+  }
+
+  .admin-pager {
+    @apply mt-3 flex items-center justify-between gap-3 text-sm font-black text-white/65;
+  }
+
+  .admin-pager button {
+    @apply grid size-10 place-items-center border border-white/10 bg-black/20 text-white transition hover:border-reyred;
+  }
+
   .admin-product-card {
     @apply border border-white/10 bg-black/20 p-4;
   }
@@ -399,6 +481,10 @@ body {
 
   .admin-notice {
     @apply border border-reyred/30 bg-reyred/10 px-4 py-3 text-sm font-bold text-white;
+  }
+
+  .admin-editor-code {
+    @apply text-xs font-black uppercase tracking-[0.16em] text-reyred;
   }
 
   .ok-text {
