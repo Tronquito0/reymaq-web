@@ -21,7 +21,16 @@ import TrustBar from "./components/TrustBar";
 import WhatsAppButton from "./components/WhatsAppButton";
 import WhyChooseUs from "./components/WhyChooseUs";
 
-export default function App() {
+function AdminApp() {
+  return (
+    <main>
+      <BusinessControlCenter />
+      <AdminRoadmap />
+    </main>
+  );
+}
+
+function PublicApp() {
   return (
     <>
       <Header />
@@ -42,12 +51,15 @@ export default function App() {
         <FAQ />
         <GoogleReviews />
         <Location />
-        <BusinessControlCenter />
-        <AdminRoadmap />
         <SocialLinks />
       </main>
       <Footer />
       <WhatsAppButton />
     </>
   );
+}
+
+export default function App() {
+  const isAdminRoute = window.location.pathname.startsWith("/admin");
+  return isAdminRoute ? <AdminApp /> : <PublicApp />;
 }

@@ -55,28 +55,44 @@ export const toProductUpdate = (product) => ({
   sort_order: Number(product.sortOrder || 0)
 });
 
-export const getPublicProducts = async () => {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return data.map(toProduct);
-};
-
-export const getAdminProducts = async () => {
-  const { data, error } = await supabase
+const fetchProductsPage = async ({ page, pageSize, onlyActive }) => {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  let query = supabase
     .from("products")
     .select("*")
     .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .range(from, to);
+
+  if (onlyActive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
-  return data.map(toProduct);
+  return data || [];
 };
+
+const fetchAllProducts = async ({ onlyActive = false, pageSize = 1000 } = {}) => {
+  const rows = [];
+  let page = 0;
+
+  while (true) {
+    const chunk = await fetchProductsPage({ page, pageSize, onlyActive });
+    rows.push(...chunk);
+
+    if (chunk.length < pageSize) break;
+    page += 1;
+  }
+
+  return rows.map(toProduct);
+};
+
+export const getPublicProducts = () => fetchAllProducts({ onlyActive: true });
+
+export const getAdminProducts = () => fetchAllProducts({ onlyActive: false });
 
 export const updateProduct = async (product) => {
   const { data, error } = await supabase
