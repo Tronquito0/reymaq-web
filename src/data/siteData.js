@@ -15,10 +15,10 @@ export const siteData = {
   phone: "Próximo a definir",
   hours: "Horarios: próximo a definir",
   legal: "© 2026 ReyMaq. Todos los derechos reservados.",
-  googleReviewsUrl: "#google-reviews-proximo",
-  googleWriteReviewUrl: "#google-review-proximo",
+  googleReviewsUrl: "https://maps.app.goo.gl/4Y58AMqgynApfwxL6",
+  googleWriteReviewUrl: "https://maps.app.goo.gl/4Y58AMqgynApfwxL6",
   googlePlaceId: "GOOGLE_PLACE_ID_PROXIMO",
-  googleMapsEmbedUrl: "",
+  googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3539.4917974906075!2d-58.841832!3d-27.4850767!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94456c901ff69ef3%3A0xa0e35feb0bc408e6!2sFerreteria%20Del%20Nea!5e0!3m2!1ses-419!2sar!4v1778420145168!5m2!1ses-419!2sar",
   googleRating: "5.0",
   googleReviewCount: "Reseñas próximas",
   analytics: {
