@@ -16,8 +16,11 @@ export const siteData = {
   hours: "Horarios: próximo a definir",
   legal: "© 2026 ReyMaq. Todos los derechos reservados.",
   googleReviewsUrl: "#google-reviews-proximo",
+  googleWriteReviewUrl: "#google-review-proximo",
   googlePlaceId: "GOOGLE_PLACE_ID_PROXIMO",
   googleMapsEmbedUrl: "",
+  googleRating: "5.0",
+  googleReviewCount: "Reseñas próximas",
   analytics: {
     googleAnalyticsId: "",
     metaPixelId: ""

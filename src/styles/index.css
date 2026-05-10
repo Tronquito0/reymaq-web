@@ -319,8 +319,16 @@ body {
     @apply mt-5 block font-display text-6xl font-black text-white;
   }
 
+  .reviews-score span {
+    @apply mt-2 block text-xs font-black uppercase tracking-[0.16em] text-reyred;
+  }
+
   .reviews-score p {
     @apply mt-4 text-sm leading-7 text-white/70;
+  }
+
+  .google-map-embed {
+    @apply min-h-[320px] w-full border-0 bg-white/[0.055];
   }
 
   .feature-mini {
