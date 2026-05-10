@@ -636,6 +636,27 @@ body {
     @apply mt-1 block text-xs font-bold leading-5 text-white/55;
   }
 
+  .daily-cash-panel {
+    @apply grid gap-5;
+  }
+
+  .daily-cash-layout {
+    @apply grid gap-4 xl:grid-cols-[1fr_420px];
+  }
+
+  .break-even-box {
+    @apply my-4 grid gap-2 sm:grid-cols-3;
+  }
+
+  .break-even-box span,
+  .break-even-box strong {
+    @apply border border-white/10 bg-black/20 p-4 text-sm font-black text-white/70;
+  }
+
+  .break-even-box strong {
+    @apply border-reyred/50 bg-reyred/10 text-white;
+  }
+
   .finance-table-top {
     @apply flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between;
   }

@@ -4,8 +4,10 @@ import {
   createPurchase,
   createSupplier,
   createSupplierPayment,
+  currentMonth,
   getFinanceData,
   today,
+  upsertMonthlyCost,
   upsertDailySale
 } from "../lib/finance";
 
@@ -31,13 +33,25 @@ const emptySale = {
   cost_estimate: "",
   notes: ""
 };
+const emptyMonthlyCost = {
+  month: currentMonth(),
+  rent_amount: "",
+  salaries_amount: "",
+  services_amount: "",
+  taxes_amount: "",
+  debt_payments_amount: "",
+  other_fixed_costs: "",
+  target_margin_percent: "35",
+  notes: ""
+};
 
 export default function BusinessFinancePanel() {
-  const [data, setData] = useState({ suppliers: [], purchases: [], payments: [], sales: [] });
+  const [data, setData] = useState({ suppliers: [], purchases: [], payments: [], sales: [], monthlyCosts: [] });
   const [supplierForm, setSupplierForm] = useState(emptySupplier);
   const [purchaseForm, setPurchaseForm] = useState(emptyPurchase);
   const [paymentForm, setPaymentForm] = useState(emptyPayment);
   const [saleForm, setSaleForm] = useState(emptySale);
+  const [monthlyCostForm, setMonthlyCostForm] = useState(emptyMonthlyCost);
   const [accountFilter, setAccountFilter] = useState("open");
   const [supplierFilter, setSupplierFilter] = useState("all");
   const [quickPayments, setQuickPayments] = useState({});
@@ -52,6 +66,20 @@ export default function BusinessFinancePanel() {
       setData(nextData);
       setPurchaseForm((current) => ({ ...current, supplier_id: current.supplier_id || nextData.suppliers[0]?.id || "" }));
       setPaymentForm((current) => ({ ...current, purchase_id: current.purchase_id || nextData.purchases[0]?.id || "" }));
+      const monthCost = nextData.monthlyCosts.find((item) => item.month === currentMonth()) || nextData.monthlyCosts[0];
+      if (monthCost) {
+        setMonthlyCostForm({
+          month: monthCost.month,
+          rent_amount: monthCost.rent_amount || "",
+          salaries_amount: monthCost.salaries_amount || "",
+          services_amount: monthCost.services_amount || "",
+          taxes_amount: monthCost.taxes_amount || "",
+          debt_payments_amount: monthCost.debt_payments_amount || "",
+          other_fixed_costs: monthCost.other_fixed_costs || "",
+          target_margin_percent: monthCost.target_margin_percent || "35",
+          notes: monthCost.notes || ""
+        });
+      }
     } catch (error) {
       setNotice(`Finanzas no esta inicializado: ejecuta supabase/business-finance.sql. Detalle: ${error.message}`);
     } finally {
@@ -114,19 +142,33 @@ export default function BusinessFinancePanel() {
         Number(sale.cash_amount || 0) +
         Number(sale.transfer_amount || 0) +
         Number(sale.card_amount || 0) +
-        Number(sale.account_amount || 0),
+        Number(sale.account_amount || 0) +
+        Number(sale.other_income || 0),
       0
     );
     const totalCosts = data.sales.reduce((sum, sale) => sum + Number(sale.cost_estimate || 0), 0);
+    const dailyExpenses = data.sales.reduce((sum, sale) => sum + Number(sale.salary_expense || 0) + Number(sale.other_expense || 0), 0);
+    const activeMonthCost = data.monthlyCosts.find((item) => item.month === monthlyCostForm.month);
+    const monthlyFixedCosts = activeMonthCost
+      ? Number(activeMonthCost.rent_amount || 0) +
+        Number(activeMonthCost.salaries_amount || 0) +
+        Number(activeMonthCost.services_amount || 0) +
+        Number(activeMonthCost.taxes_amount || 0) +
+        Number(activeMonthCost.debt_payments_amount || 0) +
+        Number(activeMonthCost.other_fixed_costs || 0)
+      : 0;
+    const targetMargin = Number(activeMonthCost?.target_margin_percent || monthlyCostForm.target_margin_percent || 35);
+    const breakEvenMonthlySales = targetMargin > 0 ? monthlyFixedCosts / (targetMargin / 100) : 0;
+    const breakEvenDailySales = breakEvenMonthlySales / 30;
     const debt = openPurchases.reduce(
       (sum, purchase) => sum + Math.max(0, Number(purchase.total_amount || 0) - Number(purchase.paid_amount || 0)),
       0
     );
     const averageDailySale = data.sales.length ? totalSales / data.sales.length : 0;
-    const grossProfit = totalSales - totalCosts;
+    const grossProfit = totalSales - totalCosts - dailyExpenses;
     const margin = totalSales ? (grossProfit / totalSales) * 100 : 0;
-    return { totalSales, totalCosts, debt, averageDailySale, grossProfit, margin };
-  }, [data.sales, openPurchases]);
+    return { totalSales, totalCosts, dailyExpenses, debt, averageDailySale, grossProfit, margin, monthlyFixedCosts, breakEvenMonthlySales, breakEvenDailySales, targetMargin };
+  }, [data.monthlyCosts, data.sales, monthlyCostForm.month, monthlyCostForm.target_margin_percent, openPurchases]);
 
   const insights = useMemo(() => {
     const items = [];
@@ -146,6 +188,12 @@ export default function BusinessFinancePanel() {
     }
     if (metrics.averageDailySale > 0) {
       items.push(`Con venta diaria promedio de ${money(metrics.averageDailySale)}, una compra prudente seria reinvertir entre ${money(metrics.averageDailySale * 2)} y ${money(metrics.averageDailySale * 4)} segun stock.`);
+    }
+    if (metrics.breakEvenDailySales > 0) {
+      const gap = metrics.averageDailySale - metrics.breakEvenDailySales;
+      items.push(gap >= 0
+        ? `Estas por encima del break even diario por ${money(gap)} promedio. Podrias separar una parte para reposicion o bajar deuda.`
+        : `Te faltan ${money(Math.abs(gap))} por dia para cubrir el break even estimado. Revisaria margen, gastos fijos o ticket promedio.`);
     }
     if (openPurchases.length > 0) {
       items.push("Hay cuentas corrientes abiertas. Conviene registrar pagos parciales para saber caja real disponible.");
@@ -210,6 +258,15 @@ export default function BusinessFinancePanel() {
     setSaleForm({ ...emptySale, sale_date: today() });
   };
 
+  const submitMonthlyCost = async (event) => {
+    event.preventDefault();
+    const saved = await upsertMonthlyCost(monthlyCostForm);
+    setData((current) => ({
+      ...current,
+      monthlyCosts: [saved, ...current.monthlyCosts.filter((item) => item.month !== saved.month)]
+    }));
+  };
+
   return (
     <div className="finance-panel">
       <div className="finance-top">
@@ -229,7 +286,7 @@ export default function BusinessFinancePanel() {
         <article className="metric-card"><span>Ventas cargadas</span><strong>{money(metrics.totalSales)}</strong><p>{money(metrics.averageDailySale)} promedio diario</p></article>
         <article className="metric-card"><span>Ganancia bruta</span><strong>{money(metrics.grossProfit)}</strong><p>{metrics.margin.toFixed(1)}% margen estimado</p></article>
         <article className="metric-card"><span>Deuda proveedores</span><strong>{money(metrics.debt)}</strong><p>{openPurchases.length} cuentas abiertas</p></article>
-        <article className="metric-card"><span>Proveedores</span><strong>{data.suppliers.length}</strong><p>{data.purchases.length} compras registradas</p></article>
+        <article className="metric-card"><span>Break even diario</span><strong>{money(metrics.breakEvenDailySales)}</strong><p>{metrics.targetMargin}% margen objetivo</p></article>
       </div>
 
       <div className="finance-grid">
@@ -273,6 +330,26 @@ export default function BusinessFinancePanel() {
           <button className="btn btn-primary justify-center" type="submit"><Plus size={18} />Registrar pago</button>
         </form>
       </div>
+
+      <form onSubmit={submitMonthlyCost} className="control-card">
+        <h4><CircleDollarSign size={20} /> Costos fijos y break even</h4>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <label className="field field-dark">Mes<input type="month" value={monthlyCostForm.month} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, month: event.target.value })} /></label>
+          <label className="field field-dark">Alquiler<input type="number" value={monthlyCostForm.rent_amount} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, rent_amount: event.target.value })} /></label>
+          <label className="field field-dark">Sueldos mensuales<input type="number" value={monthlyCostForm.salaries_amount} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, salaries_amount: event.target.value })} /></label>
+          <label className="field field-dark">Servicios<input type="number" value={monthlyCostForm.services_amount} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, services_amount: event.target.value })} /></label>
+          <label className="field field-dark">Impuestos<input type="number" value={monthlyCostForm.taxes_amount} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, taxes_amount: event.target.value })} /></label>
+          <label className="field field-dark">Pagos deuda<input type="number" value={monthlyCostForm.debt_payments_amount} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, debt_payments_amount: event.target.value })} /></label>
+          <label className="field field-dark">Otros fijos<input type="number" value={monthlyCostForm.other_fixed_costs} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, other_fixed_costs: event.target.value })} /></label>
+          <label className="field field-dark">Margen objetivo %<input type="number" value={monthlyCostForm.target_margin_percent} onChange={(event) => setMonthlyCostForm({ ...monthlyCostForm, target_margin_percent: event.target.value })} /></label>
+        </div>
+        <div className="break-even-box">
+          <span>Costos fijos: {money(metrics.monthlyFixedCosts)}</span>
+          <span>Venta mensual objetivo: {money(metrics.breakEvenMonthlySales)}</span>
+          <strong>Venta diaria objetivo: {money(metrics.breakEvenDailySales)}</strong>
+        </div>
+        <button className="btn btn-primary justify-center" type="submit"><Plus size={18} />Guardar costos</button>
+      </form>
 
       <div className="finance-grid-secondary">
         <section className="control-card">

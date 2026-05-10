@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ClipboardList,
   CircleDollarSign,
+  ClipboardCheck,
   Headphones,
   Lock,
   Plus,
@@ -14,11 +15,13 @@ import {
 import { useState } from "react";
 import { crmInquiries, employees, promoItems, salesMetrics } from "../data/adminData";
 import BusinessFinancePanel from "./BusinessFinancePanel";
+import DailyCashPanel from "./DailyCashPanel";
 import ProductAdminPanel from "./ProductAdminPanel";
 import SectionHeader from "./SectionHeader";
 
 const tabs = [
   { id: "stock", label: "Stock", icon: Boxes },
+  { id: "daily-cash", label: "Carga diaria", icon: ClipboardCheck },
   { id: "finance", label: "Finanzas", icon: CircleDollarSign },
   { id: "crm", label: "CRM", icon: Headphones },
   { id: "promos", label: "Promos", icon: BadgePercent },
@@ -90,6 +93,8 @@ export default function BusinessControlCenter() {
 
           <div className="control-content">
             {activeTab === "stock" && <ProductAdminPanel />}
+
+            {activeTab === "daily-cash" && <DailyCashPanel />}
 
             {activeTab === "finance" && <BusinessFinancePanel />}
 
