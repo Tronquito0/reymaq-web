@@ -2,7 +2,14 @@ alter table public.daily_sales
 add column if not exists other_income numeric(12, 2) not null default 0,
 add column if not exists salary_expense numeric(12, 2) not null default 0,
 add column if not exists other_expense numeric(12, 2) not null default 0,
-add column if not exists expense_notes text;
+add column if not exists expense_notes text,
+add column if not exists opening_cash numeric(12, 2) not null default 0,
+add column if not exists notified_cash_withdrawals numeric(12, 2) not null default 0,
+add column if not exists expected_cash numeric(12, 2) not null default 0,
+add column if not exists counted_cash numeric(12, 2) not null default 0,
+add column if not exists cash_difference numeric(12, 2) not null default 0,
+add column if not exists closing_cash numeric(12, 2) not null default 0,
+add column if not exists cash_control_notes text;
 
 create table if not exists public.monthly_costs (
   id uuid primary key default gen_random_uuid(),

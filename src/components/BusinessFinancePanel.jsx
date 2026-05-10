@@ -148,6 +148,7 @@ export default function BusinessFinancePanel() {
     );
     const totalCosts = data.sales.reduce((sum, sale) => sum + Number(sale.cost_estimate || 0), 0);
     const dailyExpenses = data.sales.reduce((sum, sale) => sum + Number(sale.salary_expense || 0) + Number(sale.other_expense || 0), 0);
+    const missingCash = data.sales.reduce((sum, sale) => sum + Math.min(0, Number(sale.cash_difference || 0)), 0);
     const activeMonthCost = data.monthlyCosts.find((item) => item.month === monthlyCostForm.month);
     const monthlyFixedCosts = activeMonthCost
       ? Number(activeMonthCost.rent_amount || 0) +
@@ -167,7 +168,7 @@ export default function BusinessFinancePanel() {
     const averageDailySale = data.sales.length ? totalSales / data.sales.length : 0;
     const grossProfit = totalSales - totalCosts - dailyExpenses;
     const margin = totalSales ? (grossProfit / totalSales) * 100 : 0;
-    return { totalSales, totalCosts, dailyExpenses, debt, averageDailySale, grossProfit, margin, monthlyFixedCosts, breakEvenMonthlySales, breakEvenDailySales, targetMargin };
+    return { totalSales, totalCosts, dailyExpenses, missingCash, debt, averageDailySale, grossProfit, margin, monthlyFixedCosts, breakEvenMonthlySales, breakEvenDailySales, targetMargin };
   }, [data.monthlyCosts, data.sales, monthlyCostForm.month, monthlyCostForm.target_margin_percent, openPurchases]);
 
   const insights = useMemo(() => {
@@ -194,6 +195,9 @@ export default function BusinessFinancePanel() {
       items.push(gap >= 0
         ? `Estas por encima del break even diario por ${money(gap)} promedio. Podrias separar una parte para reposicion o bajar deuda.`
         : `Te faltan ${money(Math.abs(gap))} por dia para cubrir el break even estimado. Revisaria margen, gastos fijos o ticket promedio.`);
+    }
+    if (metrics.missingCash < 0) {
+      items.push(`Hay faltantes de caja acumulados por ${money(Math.abs(metrics.missingCash))}. Conviene revisar cierres con diferencia negativa.`);
     }
     if (openPurchases.length > 0) {
       items.push("Hay cuentas corrientes abiertas. Conviene registrar pagos parciales para saber caja real disponible.");
@@ -286,7 +290,7 @@ export default function BusinessFinancePanel() {
         <article className="metric-card"><span>Ventas cargadas</span><strong>{money(metrics.totalSales)}</strong><p>{money(metrics.averageDailySale)} promedio diario</p></article>
         <article className="metric-card"><span>Ganancia bruta</span><strong>{money(metrics.grossProfit)}</strong><p>{metrics.margin.toFixed(1)}% margen estimado</p></article>
         <article className="metric-card"><span>Deuda proveedores</span><strong>{money(metrics.debt)}</strong><p>{openPurchases.length} cuentas abiertas</p></article>
-        <article className="metric-card"><span>Break even diario</span><strong>{money(metrics.breakEvenDailySales)}</strong><p>{metrics.targetMargin}% margen objetivo</p></article>
+        <article className="metric-card"><span>Break even diario</span><strong>{money(metrics.breakEvenDailySales)}</strong><p>Faltantes caja {money(Math.abs(metrics.missingCash))}</p></article>
       </div>
 
       <div className="finance-grid">

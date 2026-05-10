@@ -5,6 +5,13 @@ export const currentMonth = () => new Date().toISOString().slice(0, 7);
 
 const number = (value) => Number(value || 0);
 
+export const getPreviousClosingCash = (sales, date) => {
+  const previousSale = [...sales]
+    .filter((sale) => sale.sale_date < date)
+    .sort((a, b) => b.sale_date.localeCompare(a.sale_date))[0];
+  return number(previousSale?.closing_cash);
+};
+
 export const getFinanceData = async () => {
   const [suppliers, purchases, payments, sales, monthlyCosts] = await Promise.all([
     supabase.from("suppliers").select("*").order("name", { ascending: true }),
@@ -77,7 +84,13 @@ export const upsertDailySale = async (sale) => {
     other_income: number(sale.other_income),
     cost_estimate: number(sale.cost_estimate),
     salary_expense: number(sale.salary_expense),
-    other_expense: number(sale.other_expense)
+    other_expense: number(sale.other_expense),
+    opening_cash: number(sale.opening_cash),
+    notified_cash_withdrawals: number(sale.notified_cash_withdrawals),
+    expected_cash: number(sale.expected_cash),
+    counted_cash: number(sale.counted_cash),
+    cash_difference: number(sale.cash_difference),
+    closing_cash: number(sale.closing_cash)
   };
 
   const { data, error } = await supabase

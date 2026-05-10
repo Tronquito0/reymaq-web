@@ -1,6 +1,6 @@
 import { CheckCircle2, CircleDollarSign, RefreshCcw, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { getFinanceData, today, upsertDailySale } from "../lib/finance";
+import { getFinanceData, getPreviousClosingCash, today, upsertDailySale } from "../lib/finance";
 
 const money = (value) => `$${Number(value || 0).toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
 
@@ -15,6 +15,10 @@ const emptySale = {
   salary_expense: "",
   other_expense: "",
   expense_notes: "",
+  opening_cash: "",
+  notified_cash_withdrawals: "",
+  counted_cash: "",
+  cash_control_notes: "",
   notes: ""
 };
 
@@ -42,8 +46,17 @@ export default function DailyCashPanel() {
           salary_expense: todaySale.salary_expense || "",
           other_expense: todaySale.other_expense || "",
           expense_notes: todaySale.expense_notes || "",
+          opening_cash: todaySale.opening_cash || "",
+          notified_cash_withdrawals: todaySale.notified_cash_withdrawals || "",
+          counted_cash: todaySale.counted_cash || "",
+          cash_control_notes: todaySale.cash_control_notes || "",
           notes: todaySale.notes || ""
         });
+      } else {
+        setForm((current) => ({
+          ...current,
+          opening_cash: getPreviousClosingCash(data.sales, current.sale_date || today())
+        }));
       }
     } catch (error) {
       setNotice(`No se pudo cargar caja diaria: ${error.message}`);
@@ -64,15 +77,60 @@ export default function DailyCashPanel() {
       Number(form.account_amount || 0) +
       Number(form.other_income || 0);
     const expenses = Number(form.salary_expense || 0) + Number(form.other_expense || 0);
-    return { income, expenses, net: income - expenses };
+    const expectedCash =
+      Number(form.opening_cash || 0) +
+      Number(form.cash_amount || 0) +
+      Number(form.other_income || 0) -
+      Number(form.salary_expense || 0) -
+      Number(form.other_expense || 0) -
+      Number(form.notified_cash_withdrawals || 0);
+    const cashDifference = Number(form.counted_cash || 0) - expectedCash;
+    return { income, expenses, net: income - expenses, expectedCash, cashDifference };
   }, [form]);
+
+  const updateDate = (date) => {
+    const existing = sales.find((sale) => sale.sale_date === date);
+    if (existing) {
+      setForm({
+        sale_date: existing.sale_date,
+        cash_amount: existing.cash_amount || "",
+        transfer_amount: existing.transfer_amount || "",
+        card_amount: existing.card_amount || "",
+        account_amount: existing.account_amount || "",
+        other_income: existing.other_income || "",
+        cost_estimate: existing.cost_estimate || "",
+        salary_expense: existing.salary_expense || "",
+        other_expense: existing.other_expense || "",
+        expense_notes: existing.expense_notes || "",
+        opening_cash: existing.opening_cash || "",
+        notified_cash_withdrawals: existing.notified_cash_withdrawals || "",
+        counted_cash: existing.counted_cash || "",
+        cash_control_notes: existing.cash_control_notes || "",
+        notes: existing.notes || ""
+      });
+      return;
+    }
+
+    setForm((current) => ({
+      ...emptySale,
+      sale_date: date,
+      opening_cash: getPreviousClosingCash(sales, date)
+    }));
+  };
 
   const submit = async (event) => {
     event.preventDefault();
     setNotice("");
-    const saved = await upsertDailySale(form);
+    const saved = await upsertDailySale({
+      ...form,
+      expected_cash: totals.expectedCash,
+      cash_difference: totals.cashDifference,
+      closing_cash: Number(form.counted_cash || 0)
+    });
     setSales((current) => [saved, ...current.filter((sale) => sale.sale_date !== saved.sale_date)]);
-    setNotice("Caja diaria guardada correctamente.");
+    setNotice(totals.cashDifference < 0
+      ? `Caja guardada con faltante de ${money(Math.abs(totals.cashDifference))}. Revisar movimientos.`
+      : "Caja diaria guardada correctamente.");
   };
 
   return (
@@ -93,14 +151,22 @@ export default function DailyCashPanel() {
       <div className="grid gap-4 md:grid-cols-3">
         <article className="metric-card"><span>Ingresos del dia</span><strong>{money(totals.income)}</strong><p>ventas + otros ingresos</p></article>
         <article className="metric-card"><span>Egresos del dia</span><strong>{money(totals.expenses)}</strong><p>sueldos + gastos</p></article>
-        <article className="metric-card"><span>Neto caja</span><strong>{money(totals.net)}</strong><p>{sales.some((sale) => sale.sale_date === today()) ? "Hoy cargado" : "Falta cargar hoy"}</p></article>
+        <article className="metric-card"><span>Caja esperada</span><strong>{money(totals.expectedCash)}</strong><p>{sales.some((sale) => sale.sale_date === today()) ? "Hoy cargado" : "Falta cargar hoy"}</p></article>
       </div>
 
       <div className="daily-cash-layout">
         <form onSubmit={submit} className="control-card">
           <h4><CircleDollarSign size={20} /> Cierre del dia</h4>
-          <label className="field field-dark">Fecha<input type="date" value={form.sale_date} onChange={(event) => setForm({ ...form, sale_date: event.target.value })} /></label>
+          <label className="field field-dark">Fecha<input type="date" value={form.sale_date} onChange={(event) => updateDate(event.target.value)} /></label>
+          <div className="cash-control-box">
+            <span>Caja inicial: {money(form.opening_cash)}</span>
+            <span>Caja esperada: {money(totals.expectedCash)}</span>
+            <strong className={totals.cashDifference < 0 ? "is-missing" : ""}>
+              Diferencia: {money(totals.cashDifference)}
+            </strong>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
+            <label className="field field-dark">Caja inicial<input type="number" value={form.opening_cash} onChange={(event) => setForm({ ...form, opening_cash: event.target.value })} /></label>
             <label className="field field-dark">Efectivo<input type="number" value={form.cash_amount} onChange={(event) => setForm({ ...form, cash_amount: event.target.value })} /></label>
             <label className="field field-dark">Transferencia<input type="number" value={form.transfer_amount} onChange={(event) => setForm({ ...form, transfer_amount: event.target.value })} /></label>
             <label className="field field-dark">Tarjeta<input type="number" value={form.card_amount} onChange={(event) => setForm({ ...form, card_amount: event.target.value })} /></label>
@@ -109,8 +175,11 @@ export default function DailyCashPanel() {
             <label className="field field-dark">Costo estimado<input type="number" value={form.cost_estimate} onChange={(event) => setForm({ ...form, cost_estimate: event.target.value })} /></label>
             <label className="field field-dark">Sueldos del dia<input type="number" value={form.salary_expense} onChange={(event) => setForm({ ...form, salary_expense: event.target.value })} /></label>
             <label className="field field-dark">Otros egresos<input type="number" value={form.other_expense} onChange={(event) => setForm({ ...form, other_expense: event.target.value })} /></label>
+            <label className="field field-dark">Retiros notificados<input type="number" value={form.notified_cash_withdrawals} onChange={(event) => setForm({ ...form, notified_cash_withdrawals: event.target.value })} /></label>
+            <label className="field field-dark">Efectivo contado<input type="number" value={form.counted_cash} onChange={(event) => setForm({ ...form, counted_cash: event.target.value })} /></label>
           </div>
           <label className="field field-dark">Detalle egresos<textarea value={form.expense_notes} onChange={(event) => setForm({ ...form, expense_notes: event.target.value })} /></label>
+          <label className="field field-dark">Detalle control de caja<textarea value={form.cash_control_notes} onChange={(event) => setForm({ ...form, cash_control_notes: event.target.value })} placeholder="Si falta plata, anotar motivo a revisar: vuelto, retiro no informado, error POS, pago mal cargado..." /></label>
           <label className="field field-dark">Observaciones<textarea value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></label>
           <button className="btn btn-primary justify-center" type="submit">
             <Save size={18} />
@@ -133,7 +202,7 @@ export default function DailyCashPanel() {
               return (
                 <div key={sale.id}>
                   <strong>{sale.sale_date}</strong>
-                  <span>Ingresos {money(income)} - egresos {money(expenses)} - neto {money(income - expenses)}</span>
+                  <span>Ingresos {money(income)} - egresos {money(expenses)} - cierre {money(sale.closing_cash)} - diferencia {money(sale.cash_difference)}</span>
                 </div>
               );
             })}

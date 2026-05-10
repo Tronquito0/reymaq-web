@@ -45,6 +45,13 @@ create table if not exists public.daily_sales (
   salary_expense numeric(12, 2) not null default 0,
   other_expense numeric(12, 2) not null default 0,
   expense_notes text,
+  opening_cash numeric(12, 2) not null default 0,
+  notified_cash_withdrawals numeric(12, 2) not null default 0,
+  expected_cash numeric(12, 2) not null default 0,
+  counted_cash numeric(12, 2) not null default 0,
+  cash_difference numeric(12, 2) not null default 0,
+  closing_cash numeric(12, 2) not null default 0,
+  cash_control_notes text,
   notes text,
   created_at timestamptz not null default now()
 );
