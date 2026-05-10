@@ -587,6 +587,55 @@ body {
     @apply mt-4 h-40 w-full border border-white/10 object-cover;
   }
 
+  .finance-panel {
+    @apply grid gap-5;
+  }
+
+  .finance-top {
+    @apply flex flex-col gap-3 border border-white/10 bg-white/[0.055] p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .finance-top h3 {
+    @apply mt-1 font-display text-2xl font-black text-white;
+  }
+
+  .finance-grid {
+    @apply grid gap-4 xl:grid-cols-4;
+  }
+
+  .finance-grid .control-card h4,
+  .finance-grid-secondary .control-card h4 {
+    @apply flex items-center gap-2;
+  }
+
+  .finance-grid-secondary {
+    @apply grid gap-4 xl:grid-cols-[0.9fr_1.1fr];
+  }
+
+  .assistant-notes {
+    @apply mt-4 grid gap-3;
+  }
+
+  .assistant-notes p {
+    @apply border border-white/10 bg-black/20 p-4 text-sm leading-6 text-white/75;
+  }
+
+  .finance-list {
+    @apply mt-4 grid gap-2;
+  }
+
+  .finance-list div {
+    @apply border border-white/10 bg-black/20 p-3;
+  }
+
+  .finance-list strong {
+    @apply block text-sm font-black text-white;
+  }
+
+  .finance-list span {
+    @apply mt-1 block text-xs font-bold leading-5 text-white/55;
+  }
+
   .ok-text {
     @apply text-emerald-300;
   }
