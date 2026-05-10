@@ -38,6 +38,9 @@ export default function BusinessFinancePanel() {
   const [purchaseForm, setPurchaseForm] = useState(emptyPurchase);
   const [paymentForm, setPaymentForm] = useState(emptyPayment);
   const [saleForm, setSaleForm] = useState(emptySale);
+  const [accountFilter, setAccountFilter] = useState("open");
+  const [supplierFilter, setSupplierFilter] = useState("all");
+  const [quickPayments, setQuickPayments] = useState({});
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -61,6 +64,48 @@ export default function BusinessFinancePanel() {
   }, []);
 
   const openPurchases = data.purchases.filter((purchase) => purchase.status !== "paid");
+  const todayDate = today();
+
+  const getPurchaseBalance = (purchase) =>
+    Math.max(0, Number(purchase.total_amount || 0) - Number(purchase.paid_amount || 0));
+
+  const getPurchaseStatus = (purchase) => {
+    const balance = getPurchaseBalance(purchase);
+    if (balance <= 0 || purchase.status === "paid") return "paid";
+    if (purchase.due_date && purchase.due_date < todayDate) return "overdue";
+    if (purchase.due_date) {
+      const due = new Date(`${purchase.due_date}T00:00:00`);
+      const now = new Date(`${todayDate}T00:00:00`);
+      const days = Math.ceil((due - now) / 86400000);
+      if (days <= 7) return "due-soon";
+    }
+    if (Number(purchase.paid_amount || 0) > 0) return "partial";
+    return "open";
+  };
+
+  const filteredPurchases = useMemo(() => {
+    return data.purchases.filter((purchase) => {
+      const status = getPurchaseStatus(purchase);
+      const matchesSupplier = supplierFilter === "all" || purchase.supplier_id === supplierFilter;
+      const matchesStatus =
+        accountFilter === "all" ||
+        (accountFilter === "open" && status !== "paid") ||
+        accountFilter === status;
+      return matchesSupplier && matchesStatus;
+    });
+  }, [accountFilter, data.purchases, supplierFilter]);
+
+  const supplierSummary = useMemo(() => {
+    return data.suppliers
+      .map((supplier) => {
+        const purchases = data.purchases.filter((purchase) => purchase.supplier_id === supplier.id);
+        const total = purchases.reduce((sum, purchase) => sum + Number(purchase.total_amount || 0), 0);
+        const paid = purchases.reduce((sum, purchase) => sum + Number(purchase.paid_amount || 0), 0);
+        return { supplier, total, paid, balance: total - paid, purchases: purchases.length };
+      })
+      .filter((item) => item.purchases > 0 || item.balance > 0)
+      .sort((a, b) => b.balance - a.balance);
+  }, [data.purchases, data.suppliers]);
 
   const metrics = useMemo(() => {
     const totalSales = data.sales.reduce(
@@ -85,6 +130,14 @@ export default function BusinessFinancePanel() {
 
   const insights = useMemo(() => {
     const items = [];
+    const overdue = data.purchases.filter((purchase) => getPurchaseStatus(purchase) === "overdue");
+    const dueSoon = data.purchases.filter((purchase) => getPurchaseStatus(purchase) === "due-soon");
+    if (overdue.length) {
+      items.push(`Tenes ${overdue.length} cuentas vencidas por ${money(overdue.reduce((sum, purchase) => sum + getPurchaseBalance(purchase), 0))}. Prioridad alta: saldar o renegociar.`);
+    }
+    if (dueSoon.length) {
+      items.push(`Vencen ${dueSoon.length} cuentas en los proximos 7 dias por ${money(dueSoon.reduce((sum, purchase) => sum + getPurchaseBalance(purchase), 0))}. Reservaria caja para eso.`);
+    }
     if (metrics.debt > metrics.averageDailySale * 7 && metrics.averageDailySale > 0) {
       items.push("La deuda con proveedores supera una semana promedio de ventas. Priorizaria saldar vencimientos antes de comprar fuerte.");
     }
@@ -101,7 +154,7 @@ export default function BusinessFinancePanel() {
       items.push("Carga ventas y compras para que el asistente empiece a recomendar compras, pagos y reposicion.");
     }
     return items;
-  }, [metrics, openPurchases.length]);
+  }, [data.purchases, metrics, openPurchases.length]);
 
   const submitSupplier = async (event) => {
     event.preventDefault();
@@ -129,6 +182,22 @@ export default function BusinessFinancePanel() {
       purchases: current.purchases.map((item) => (item.id === updated.id ? updated : item))
     }));
     setPaymentForm({ ...emptyPayment, purchase_id: updated.id });
+  };
+
+  const submitQuickPayment = async (purchase) => {
+    const amount = quickPayments[purchase.id];
+    if (!amount) return;
+    const updated = await createSupplierPayment(purchase, {
+      payment_date: today(),
+      amount,
+      method: "cash",
+      notes: "Pago rapido"
+    });
+    setData((current) => ({
+      ...current,
+      purchases: current.purchases.map((item) => (item.id === updated.id ? updated : item))
+    }));
+    setQuickPayments((current) => ({ ...current, [purchase.id]: "" }));
   };
 
   const submitSale = async (event) => {
@@ -213,18 +282,82 @@ export default function BusinessFinancePanel() {
           </div>
         </section>
         <section className="control-card">
-          <h4>Cuentas abiertas</h4>
+          <h4>Resumen por proveedor</h4>
           <div className="finance-list">
-            {openPurchases.slice(0, 8).map((purchase) => (
-              <div key={purchase.id}>
-                <strong>{purchase.suppliers?.name || "Proveedor"}</strong>
-                <span>{purchase.description || "Compra"} - vence {purchase.due_date || "sin fecha"} - saldo {money(Number(purchase.total_amount) - Number(purchase.paid_amount))}</span>
+            {supplierSummary.slice(0, 8).map((item) => (
+              <div key={item.supplier.id}>
+                <strong>{item.supplier.name}</strong>
+                <span>Comprado {money(item.total)} - pagado {money(item.paid)} - saldo {money(item.balance)}</span>
               </div>
             ))}
-            {!openPurchases.length && <p className="text-sm text-white/60">No hay cuentas abiertas.</p>}
+            {!supplierSummary.length && <p className="text-sm text-white/60">Todavia no hay compras registradas.</p>}
           </div>
         </section>
       </div>
+
+      <section className="control-card">
+        <div className="finance-table-top">
+          <h4>Cuentas corrientes y vencimientos</h4>
+          <div className="finance-filters">
+            {[
+              ["open", "Abiertas"],
+              ["overdue", "Vencidas"],
+              ["due-soon", "Vencen 7 dias"],
+              ["partial", "Parciales"],
+              ["paid", "Pagadas"],
+              ["all", "Todas"]
+            ].map(([id, label]) => (
+              <button key={id} type="button" className={accountFilter === id ? "is-active" : ""} onClick={() => setAccountFilter(id)}>
+                {label}
+              </button>
+            ))}
+            <select value={supplierFilter} onChange={(event) => setSupplierFilter(event.target.value)}>
+              <option value="all">Todos los proveedores</option>
+              {data.suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>{supplier.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="finance-table">
+          <div className="finance-table-row finance-table-head">
+            <span>Fecha</span>
+            <span>Proveedor</span>
+            <span>Detalle</span>
+            <span>Total</span>
+            <span>Pagado</span>
+            <span>Saldo</span>
+            <span>Vence</span>
+            <span>Pago rapido</span>
+          </div>
+          {filteredPurchases.map((purchase) => {
+            const balance = getPurchaseBalance(purchase);
+            const status = getPurchaseStatus(purchase);
+            return (
+              <div key={purchase.id} className={`finance-table-row status-${status}`}>
+                <span>{purchase.purchase_date}</span>
+                <strong>{purchase.suppliers?.name || "Proveedor"}</strong>
+                <span>{purchase.description || "-"}</span>
+                <span>{money(purchase.total_amount)}</span>
+                <span>{money(purchase.paid_amount)}</span>
+                <strong>{money(balance)}</strong>
+                <span>{purchase.due_date || "-"}</span>
+                <div className="finance-quick-pay">
+                  <input
+                    type="number"
+                    value={quickPayments[purchase.id] || ""}
+                    placeholder="Monto"
+                    onChange={(event) => setQuickPayments((current) => ({ ...current, [purchase.id]: event.target.value }))}
+                  />
+                  <button type="button" onClick={() => submitQuickPayment(purchase)}>Pagar</button>
+                </div>
+              </div>
+            );
+          })}
+          {!filteredPurchases.length && <div className="inventory-empty">No hay movimientos para ese filtro.</div>}
+        </div>
+      </section>
     </div>
   );
 }

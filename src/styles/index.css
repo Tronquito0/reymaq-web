@@ -636,6 +636,67 @@ body {
     @apply mt-1 block text-xs font-bold leading-5 text-white/55;
   }
 
+  .finance-table-top {
+    @apply flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .finance-filters {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .finance-filters button,
+  .finance-filters select {
+    @apply min-h-10 border border-white/10 bg-black/20 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-white/60 outline-none transition hover:border-reyred hover:text-white;
+  }
+
+  .finance-filters button.is-active {
+    @apply border-reyred bg-reyred text-white;
+  }
+
+  .finance-filters option {
+    @apply bg-graphite text-white;
+  }
+
+  .finance-table {
+    @apply mt-4 max-h-[560px] overflow-auto border border-white/10 bg-black/20;
+  }
+
+  .finance-table-row {
+    @apply grid min-w-[980px] grid-cols-[92px_150px_minmax(180px,1fr)_100px_100px_100px_100px_170px] items-center gap-2 border-b border-white/10 px-3 py-2 text-xs font-bold text-white/65;
+  }
+
+  .finance-table-row strong {
+    @apply text-white;
+  }
+
+  .finance-table-head {
+    @apply sticky top-0 z-10 bg-[#1b1b1d] text-[10px] font-black uppercase tracking-[0.12em] text-white/45;
+  }
+
+  .finance-table-row.status-overdue {
+    @apply bg-red-500/10;
+  }
+
+  .finance-table-row.status-due-soon {
+    @apply bg-amber-400/10;
+  }
+
+  .finance-table-row.status-paid {
+    @apply opacity-60;
+  }
+
+  .finance-quick-pay {
+    @apply grid grid-cols-[1fr_auto] gap-2;
+  }
+
+  .finance-quick-pay input {
+    @apply min-h-9 min-w-0 border border-white/10 bg-black/30 px-3 py-2 text-xs font-bold text-white outline-none focus:border-reyred;
+  }
+
+  .finance-quick-pay button {
+    @apply min-h-9 border border-reyred bg-reyred px-3 py-2 text-xs font-black text-white;
+  }
+
   .ok-text {
     @apply text-emerald-300;
   }
