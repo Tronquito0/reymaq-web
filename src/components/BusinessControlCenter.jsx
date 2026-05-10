@@ -7,13 +7,12 @@ import {
   Headphones,
   Lock,
   Plus,
-  Search,
   ShieldCheck,
   UsersRound
 } from "lucide-react";
-import { useMemo, useState } from "react";
-import { crmInquiries, employees, promoItems, salesMetrics, stockItems } from "../data/adminData";
-import { categories } from "../data/categories";
+import { useState } from "react";
+import { crmInquiries, employees, promoItems, salesMetrics } from "../data/adminData";
+import ProductAdminPanel from "./ProductAdminPanel";
 import SectionHeader from "./SectionHeader";
 
 const tabs = [
@@ -24,49 +23,10 @@ const tabs = [
   { id: "employees", label: "Empleados", icon: UsersRound }
 ];
 
-const initialProduct = {
-  product: "",
-  category: categories[0]?.title || "General",
-  stock: "",
-  minStock: ""
-};
-
 export default function BusinessControlCenter() {
   const [activeTab, setActiveTab] = useState("stock");
-  const [stock, setStock] = useState(stockItems);
   const [inquiries, setInquiries] = useState(crmInquiries);
   const [promos, setPromos] = useState(promoItems);
-  const [productForm, setProductForm] = useState(initialProduct);
-  const [search, setSearch] = useState("");
-
-  const filteredStock = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return stock;
-    return stock.filter((item) =>
-      [item.sku, item.product, item.category, item.status].join(" ").toLowerCase().includes(term)
-    );
-  }, [search, stock]);
-
-  const addStockItem = (event) => {
-    event.preventDefault();
-    if (!productForm.product.trim()) return;
-
-    const nextStock = Number(productForm.stock || 0);
-    const nextMinStock = Number(productForm.minStock || 0);
-
-    setStock((current) => [
-      {
-        sku: `RM-${String(current.length + 1).padStart(4, "0")}`,
-        product: productForm.product,
-        category: productForm.category,
-        stock: nextStock,
-        minStock: nextMinStock,
-        status: nextStock === 0 ? "Reponer" : nextStock <= nextMinStock ? "Bajo stock" : "Disponible"
-      },
-      ...current
-    ]);
-    setProductForm(initialProduct);
-  };
 
   const updateInquiryStatus = (id, status) => {
     setInquiries((current) => current.map((item) => (item.id === id ? { ...item, status } : item)));
@@ -75,7 +35,7 @@ export default function BusinessControlCenter() {
   const addPromo = () => {
     setPromos((current) => [
       {
-        title: "Nueva promoción",
+        title: "Nueva promocion",
         channel: "Web",
         status: "Borrador",
         detail: "Editar productos, vigencia, imagen y condiciones."
@@ -90,7 +50,7 @@ export default function BusinessControlCenter() {
         <SectionHeader
           eyebrow="Control del negocio"
           title="Panel operativo ReyMaq"
-          description="Primera versión visual y funcional para controlar stock, consultas, promociones, reportes y usuarios. Lista para conectar a backend, login real y base de datos."
+          description="Panel conectado a Supabase para controlar productos, precios, stock, consultas, promociones, reportes y usuarios."
           dark
         />
 
@@ -101,17 +61,17 @@ export default function BusinessControlCenter() {
                 <ShieldCheck size={22} />
               </span>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-reyred">Modo demo admin</p>
-                <h3 className="font-display text-2xl font-black">Gestión integral</h3>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-reyred">Admin conectado</p>
+                <h3 className="font-display text-2xl font-black">Gestion integral</h3>
               </div>
             </div>
             <div className="flex items-center gap-2 border border-white/10 bg-white/[0.055] px-4 py-3 text-sm font-black text-white/75">
               <Lock size={17} />
-              Login real preparado
+              Login con Supabase Auth
             </div>
           </div>
 
-          <div className="control-tabs" role="tablist" aria-label="Panel de gestión">
+          <div className="control-tabs" role="tablist" aria-label="Panel de gestion">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -126,93 +86,14 @@ export default function BusinessControlCenter() {
           </div>
 
           <div className="control-content">
-            {activeTab === "stock" && (
-              <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <form onSubmit={addStockItem} className="control-card">
-                  <h4>Alta rápida de producto</h4>
-                  <label className="field field-dark">
-                    Producto
-                    <input
-                      value={productForm.product}
-                      onChange={(event) => setProductForm({ ...productForm, product: event.target.value })}
-                      placeholder="Ej: Amoladora, cable, pintura"
-                    />
-                  </label>
-                  <label className="field field-dark">
-                    Categoría
-                    <select
-                      value={productForm.category}
-                      onChange={(event) => setProductForm({ ...productForm, category: event.target.value })}
-                    >
-                      {categories.map((category) => (
-                        <option key={category.title}>{category.title}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="field field-dark">
-                      Stock
-                      <input
-                        type="number"
-                        min="0"
-                        value={productForm.stock}
-                        onChange={(event) => setProductForm({ ...productForm, stock: event.target.value })}
-                        placeholder="0"
-                      />
-                    </label>
-                    <label className="field field-dark">
-                      Mínimo
-                      <input
-                        type="number"
-                        min="0"
-                        value={productForm.minStock}
-                        onChange={(event) => setProductForm({ ...productForm, minStock: event.target.value })}
-                        placeholder="0"
-                      />
-                    </label>
-                  </div>
-                  <button type="submit" className="btn btn-primary justify-center">
-                    <Plus size={18} />
-                    Agregar producto
-                  </button>
-                </form>
-
-                <div className="control-card">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/45" size={18} />
-                    <input
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      className="admin-search"
-                      placeholder="Buscar producto, SKU o categoría"
-                    />
-                  </div>
-                  <div className="admin-table mt-4">
-                    {filteredStock.map((item) => (
-                      <div key={item.sku} className="admin-table-row">
-                        <div>
-                          <strong>{item.product}</strong>
-                          <span>{item.sku} · {item.category}</span>
-                        </div>
-                        <div className="text-right">
-                          <strong>{item.stock}</strong>
-                          <span className={item.status === "Disponible" ? "ok-text" : "alert-text"}>
-                            {item.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            {activeTab === "stock" && <ProductAdminPanel />}
 
             {activeTab === "crm" && (
               <div className="grid gap-4">
                 {inquiries.map((item) => (
                   <article key={item.id} className="crm-row">
                     <div>
-                      <span>{item.id} · {item.source}</span>
+                      <span>{item.id} - {item.source}</span>
                       <h4>{item.customer}</h4>
                       <p>{item.need}</p>
                     </div>
@@ -232,7 +113,7 @@ export default function BusinessControlCenter() {
               <div>
                 <button type="button" onClick={addPromo} className="btn btn-primary mb-5">
                   <Plus size={18} />
-                  Crear promoción
+                  Crear promocion
                 </button>
                 <div className="grid gap-4 lg:grid-cols-3">
                   {promos.map((promo, index) => (

@@ -3,6 +3,7 @@ dist/
 .env
 .env.local
 .env.*.local
+supabase/*-import.sql
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

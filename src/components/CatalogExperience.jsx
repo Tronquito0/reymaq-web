@@ -1,17 +1,42 @@
 import { Eye, MessageCircle, Plus, Search, ShoppingCart, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { categories } from "../data/categories";
-import { products, stockLabels } from "../data/products";
+import { products as fallbackProducts } from "../data/products";
 import { createWhatsAppUrl } from "../data/siteData";
+import { getPublicProducts, stockLabels } from "../lib/products";
 import SectionHeader from "./SectionHeader";
 
-const allCategories = ["Todas", ...categories.map((category) => category.title)];
-
 export default function CatalogExperience() {
+  const [products, setProducts] = useState(fallbackProducts);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todas");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quoteItems, setQuoteItems] = useState([]);
+
+  const allCategories = useMemo(() => {
+    const productCategories = products.map((product) => product.category).filter(Boolean);
+    return ["Todas", ...new Set([...categories.map((category) => category.title), ...productCategories])];
+  }, [products]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    getPublicProducts()
+      .then((items) => {
+        if (isMounted && items.length) setProducts(items);
+      })
+      .catch((error) => {
+        console.warn("No se pudieron cargar productos desde Supabase.", error);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingProducts(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -24,7 +49,7 @@ export default function CatalogExperience() {
 
       return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, products, query]);
 
   const addToQuote = (product) => {
     setQuoteItems((current) => {
@@ -114,6 +139,11 @@ export default function CatalogExperience() {
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {!loadingProducts && filteredProducts.length === 0 && (
+              <div className="border border-black/10 bg-warm p-6 text-sm font-bold text-steel md:col-span-2 xl:col-span-3">
+                No hay productos publicados con esos filtros.
+              </div>
+            )}
             {filteredProducts.map((product) => (
               <article key={product.id} className="product-card">
                 <div className="flex items-start justify-between gap-4">
@@ -128,6 +158,14 @@ export default function CatalogExperience() {
                   <span className="tag">{product.tag}</span>
                 </div>
                 <p className="mt-4 text-sm leading-6 text-steel">{product.description}</p>
+                {product.imageUrl && (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="mt-4 h-40 w-full object-cover"
+                    loading="lazy"
+                  />
+                )}
                 <div className="mt-5 flex flex-wrap gap-2">
                   <span className={`stock-badge stock-${product.stockStatus}`}>
                     {stockLabels[product.stockStatus]}
@@ -182,6 +220,14 @@ export default function CatalogExperience() {
               <div className="detail-box">
                 <span>Marca</span>
                 <strong>{selectedProduct.brand}</strong>
+              </div>
+              <div className="detail-box">
+                <span>Precio venta</span>
+                <strong>{selectedProduct.salePrice ? `$${selectedProduct.salePrice.toLocaleString("es-AR")}` : "Consultar"}</strong>
+              </div>
+              <div className="detail-box">
+                <span>Precio efectivo</span>
+                <strong>{selectedProduct.cashPrice ? `$${selectedProduct.cashPrice.toLocaleString("es-AR")}` : "Consultar"}</strong>
               </div>
             </div>
             <ul className="mt-6 grid gap-2 text-sm font-semibold text-steel">

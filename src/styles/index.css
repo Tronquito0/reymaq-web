@@ -195,6 +195,10 @@ body {
     @apply border border-black/15 bg-white text-graphite hover:border-reyred hover:text-reyred focus:ring-reyred/20;
   }
 
+  .btn-outline-light {
+    @apply border border-white/15 bg-white/[0.04] text-white hover:border-reyred hover:text-white focus:ring-reyred/20;
+  }
+
   .modal-backdrop {
     @apply fixed inset-0 z-[70] grid place-items-center bg-black/70 p-4 backdrop-blur-sm;
   }
@@ -343,6 +347,58 @@ body {
 
   .admin-table-row span {
     @apply mt-1 block text-xs font-bold text-white/50;
+  }
+
+  .admin-login-card {
+    @apply mx-auto max-w-xl;
+  }
+
+  .admin-products-toolbar {
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 lg:grid-cols-[1fr_150px_auto_auto] lg:items-end;
+  }
+
+  .admin-margin-field {
+    @apply mt-0;
+  }
+
+  .admin-products-grid {
+    @apply grid max-h-[760px] gap-4 overflow-y-auto pr-1;
+  }
+
+  .admin-product-card {
+    @apply border border-white/10 bg-black/20 p-4;
+  }
+
+  .admin-product-head {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .admin-check {
+    @apply inline-flex items-center gap-3 text-xs font-black uppercase tracking-[0.14em] text-white/55;
+  }
+
+  .admin-check input {
+    @apply size-4 accent-reyred;
+  }
+
+  .admin-visibility {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white/60 transition hover:border-reyred hover:text-white;
+  }
+
+  .admin-visibility.is-live {
+    @apply border-emerald-400/30 bg-emerald-400/10 text-emerald-200;
+  }
+
+  .admin-price-summary {
+    @apply mt-4 grid gap-2 sm:grid-cols-3;
+  }
+
+  .admin-price-summary span {
+    @apply inline-flex min-h-10 items-center gap-2 border border-white/10 bg-white/[0.045] px-3 py-2 text-sm font-black text-white/75;
+  }
+
+  .admin-notice {
+    @apply border border-reyred/30 bg-reyred/10 px-4 py-3 text-sm font-bold text-white;
   }
 
   .ok-text {

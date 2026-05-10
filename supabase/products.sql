@@ -13,8 +13,14 @@ create table if not exists public.products (
   brand text not null default 'Varias marcas',
   technical text[] not null default '{}',
   sku text,
-  price numeric(12, 2),
+  cost_price numeric(12, 2) not null default 0,
+  sale_price numeric(12, 2) not null default 0,
+  cash_price numeric(12, 2) not null default 0,
+  wholesale_price numeric(12, 2) not null default 0,
+  card_3_markup_percent numeric(6, 2) not null default 35,
+  price numeric(12, 2) generated always as (sale_price) stored,
   stock_quantity integer,
+  min_stock_quantity integer not null default 0,
   image_url text,
   is_featured boolean not null default false,
   is_active boolean not null default true,
@@ -50,3 +56,18 @@ create policy "Products are publicly readable"
 on public.products
 for select
 using (is_active = true);
+
+drop policy if exists "Authenticated users can read all products" on public.products;
+create policy "Authenticated users can read all products"
+on public.products
+for select
+to authenticated
+using (true);
+
+drop policy if exists "Authenticated users can manage products" on public.products;
+create policy "Authenticated users can manage products"
+on public.products
+for all
+to authenticated
+using (true)
+with check (true);
