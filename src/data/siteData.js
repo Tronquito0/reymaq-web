@@ -29,7 +29,6 @@ export const navItems = [
   { label: "Catálogo", href: "#catalogo" },
   { label: "Profesionales", href: "#profesionales" },
   { label: "Cotizar", href: "#cotizar" },
-  { label: "Gestión", href: "#gestion" },
   { label: "Reseñas", href: "#resenas" },
   { label: "Ubicación", href: "#ubicacion" }
 ];

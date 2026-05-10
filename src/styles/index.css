@@ -159,6 +159,50 @@ body {
     @apply min-h-14 w-full border border-black/10 bg-white py-3 pl-12 pr-4 text-base font-bold text-graphite outline-none transition placeholder:text-steel/70 focus:border-reyred focus:ring-4 focus:ring-reyred/10;
   }
 
+  .catalog-summary {
+    @apply mt-4 flex flex-col gap-2 text-xs font-black uppercase tracking-[0.14em] text-steel sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .catalog-departments {
+    @apply mt-4 grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .department-chip {
+    @apply grid min-h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border border-black/10 bg-white px-3 py-2 text-left text-xs font-black uppercase tracking-[0.08em] text-graphite transition hover:border-reyred hover:text-reyred;
+  }
+
+  .department-chip span {
+    @apply truncate;
+  }
+
+  .department-chip strong {
+    @apply bg-warm px-2 py-1 text-[10px] text-steel;
+  }
+
+  .department-chip-active {
+    @apply border-reyred bg-reyred text-white hover:text-white;
+  }
+
+  .department-chip-active strong {
+    @apply bg-white text-reyred;
+  }
+
+  .catalog-featured {
+    @apply mt-6 grid gap-4 border border-black/10 bg-white p-4 sm:p-5;
+  }
+
+  .featured-product {
+    @apply border border-black/10 bg-warm p-4 text-left transition hover:border-reyred hover:bg-white;
+  }
+
+  .featured-product span {
+    @apply text-[11px] font-black uppercase tracking-[0.12em] text-steel;
+  }
+
+  .featured-product strong {
+    @apply mt-2 block font-display text-lg font-black text-graphite;
+  }
+
   .filter-pill {
     @apply shrink-0 border border-black/10 bg-white px-4 py-3 text-sm font-black text-graphite transition hover:border-reyred hover:text-reyred;
   }
@@ -189,6 +233,10 @@ body {
 
   .stock-low {
     @apply bg-red-100 text-red-800;
+  }
+
+  .stock-out {
+    @apply bg-zinc-900 text-white;
   }
 
   .soft-badge {
@@ -257,6 +305,22 @@ body {
 
   .review-card {
     @apply border border-white/10 bg-white/[0.055] p-6 shadow-sm;
+  }
+
+  .reviews-layout {
+    @apply grid gap-4 xl:grid-cols-[320px_1fr] xl:items-start;
+  }
+
+  .reviews-score {
+    @apply border border-white/10 bg-white/[0.075] p-6;
+  }
+
+  .reviews-score strong {
+    @apply mt-5 block font-display text-6xl font-black text-white;
+  }
+
+  .reviews-score p {
+    @apply mt-4 text-sm leading-7 text-white/70;
   }
 
   .feature-mini {
@@ -359,6 +423,22 @@ body {
 
   .admin-products-toolbar {
     @apply grid gap-3 border border-white/10 bg-white/[0.055] p-3 lg:grid-cols-[minmax(260px,1fr)_130px_auto_auto] lg:items-end xl:p-4;
+  }
+
+  .admin-quickbar {
+    @apply flex flex-wrap items-center gap-2 border border-white/10 bg-black/20 p-3 text-xs font-black uppercase tracking-[0.1em] text-white/55;
+  }
+
+  .admin-quickbar button {
+    @apply min-h-9 border border-white/10 bg-white/[0.04] px-3 py-2 transition hover:border-reyred hover:text-white;
+  }
+
+  .admin-quickbar button.is-active {
+    @apply border-reyred bg-reyred text-white;
+  }
+
+  .admin-quickbar span {
+    @apply ml-auto text-white/45;
   }
 
   .admin-margin-field {
@@ -493,6 +573,10 @@ body {
 
   .admin-editor-code {
     @apply text-xs font-black uppercase tracking-[0.16em] text-reyred;
+  }
+
+  .admin-image-preview {
+    @apply mt-4 h-40 w-full border border-white/10 object-cover;
   }
 
   .ok-text {

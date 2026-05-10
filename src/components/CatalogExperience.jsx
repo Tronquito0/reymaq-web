@@ -1,6 +1,5 @@
-import { Eye, MessageCircle, Plus, Search, ShoppingCart, X } from "lucide-react";
+import { Eye, Layers3, MessageCircle, Plus, Search, ShoppingCart, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { categories } from "../data/categories";
 import { products as fallbackProducts } from "../data/products";
 import { createWhatsAppUrl } from "../data/siteData";
 import { getPublicProducts, stockLabels } from "../lib/products";
@@ -13,10 +12,21 @@ export default function CatalogExperience() {
   const [activeCategory, setActiveCategory] = useState("Todas");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quoteItems, setQuoteItems] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(12);
 
-  const allCategories = useMemo(() => {
-    const productCategories = products.map((product) => product.category).filter(Boolean);
-    return ["Todas", ...new Set([...categories.map((category) => category.title), ...productCategories])];
+  const departments = useMemo(() => {
+    const counts = new Map();
+    products.forEach((product) => {
+      const category = product.category || "General";
+      counts.set(category, (counts.get(category) || 0) + 1);
+    });
+
+    return [
+      { title: "Todas", count: products.length },
+      ...Array.from(counts.entries())
+        .map(([title, count]) => ({ title, count }))
+        .sort((a, b) => a.title.localeCompare(b.title))
+    ];
   }, [products]);
 
   useEffect(() => {
@@ -51,6 +61,13 @@ export default function CatalogExperience() {
     });
   }, [activeCategory, products, query]);
 
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const featuredProducts = products.filter((product) => product.isFeatured).slice(0, 6);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [activeCategory, query]);
+
   const addToQuote = (product) => {
     setQuoteItems((current) => {
       if (current.some((item) => item.id === product.id)) return current;
@@ -66,6 +83,10 @@ export default function CatalogExperience() {
     "Hola ReyMaq, quiero cotizar estos productos:",
     ...quoteItems.map((item) => `- ${item.name} (${item.category})`)
   ].join("\n");
+
+  const selectedCard3Price = selectedProduct
+    ? Math.round(Number(selectedProduct.salePrice || 0) * (1 + Number(selectedProduct.card3MarkupPercent || 0) / 100))
+    : 0;
 
   return (
     <section id="catalogo" className="section bg-white">
@@ -89,15 +110,21 @@ export default function CatalogExperience() {
                   aria-label="Buscar productos"
                 />
               </label>
-              <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                {allCategories.map((category) => (
+              <div className="catalog-summary">
+                <span>{loadingProducts ? "Cargando productos..." : `${filteredProducts.length} productos publicados`}</span>
+                <span>{activeCategory}</span>
+              </div>
+              <div className="catalog-departments">
+                {departments.map((department) => (
                   <button
-                    key={category}
-                    onClick={() => setActiveCategory(category)}
-                    className={`filter-pill ${activeCategory === category ? "filter-pill-active" : ""}`}
+                    key={department.title}
+                    onClick={() => setActiveCategory(department.title)}
+                    className={`department-chip ${activeCategory === department.title ? "department-chip-active" : ""}`}
                     type="button"
                   >
-                    {category}
+                    <Layers3 size={15} />
+                    <span>{department.title}</span>
+                    <strong>{department.count}</strong>
                   </button>
                 ))}
               </div>
@@ -138,13 +165,35 @@ export default function CatalogExperience() {
             </aside>
           </div>
 
+          {featuredProducts.length > 0 && (
+            <div className="catalog-featured">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-reyred">Destacados</p>
+                <h3 className="font-display text-2xl font-black text-graphite">Productos para mostrar primero</h3>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {featuredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    className="featured-product"
+                    onClick={() => setSelectedProduct(product)}
+                  >
+                    <span>{product.category}</span>
+                    <strong>{product.name}</strong>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {!loadingProducts && filteredProducts.length === 0 && (
               <div className="border border-black/10 bg-warm p-6 text-sm font-bold text-steel md:col-span-2 xl:col-span-3">
                 No hay productos publicados con esos filtros.
               </div>
             )}
-            {filteredProducts.map((product) => (
+            {visibleProducts.map((product) => (
               <article key={product.id} className="product-card">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -185,6 +234,13 @@ export default function CatalogExperience() {
               </article>
             ))}
           </div>
+          {filteredProducts.length > visibleProducts.length && (
+            <div className="mt-6 flex justify-center">
+              <button type="button" className="btn btn-outline-dark" onClick={() => setVisibleCount((current) => current + 12)}>
+                Ver mas productos ({filteredProducts.length - visibleProducts.length})
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -228,6 +284,14 @@ export default function CatalogExperience() {
               <div className="detail-box">
                 <span>Precio efectivo</span>
                 <strong>{selectedProduct.cashPrice ? `$${selectedProduct.cashPrice.toLocaleString("es-AR")}` : "Consultar"}</strong>
+              </div>
+              <div className="detail-box">
+                <span>Precio mayoreo</span>
+                <strong>{selectedProduct.wholesalePrice ? `$${selectedProduct.wholesalePrice.toLocaleString("es-AR")}` : "Consultar"}</strong>
+              </div>
+              <div className="detail-box">
+                <span>Tarjeta 3 pagos</span>
+                <strong>{selectedCard3Price ? `$${selectedCard3Price.toLocaleString("es-AR")}` : "Consultar"}</strong>
               </div>
             </div>
             <ul className="mt-6 grid gap-2 text-sm font-semibold text-steel">

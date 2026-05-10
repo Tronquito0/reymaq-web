@@ -38,6 +38,7 @@ export default function ProductAdminPanel() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [activeDepartment, setActiveDepartment] = useState("Todos");
+  const [quickFilter, setQuickFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [bulkMargin, setBulkMargin] = useState("40");
   const [page, setPage] = useState(1);
@@ -91,13 +92,22 @@ export default function ProductAdminPanel() {
     const term = search.trim().toLowerCase();
     return products.filter((product) => {
       const matchesDepartment = activeDepartment === "Todos" || product.category === activeDepartment;
+      const matchesQuickFilter =
+        quickFilter === "all" ||
+        (quickFilter === "published" && product.isActive) ||
+        (quickFilter === "hidden" && !product.isActive) ||
+        (quickFilter === "no-image" && !product.imageUrl) ||
+        (quickFilter === "no-price" && Number(product.salePrice || 0) <= 0) ||
+        (quickFilter === "low-stock" &&
+          Number(product.minStockQuantity || 0) > 0 &&
+          Number(product.stockQuantity || 0) <= Number(product.minStockQuantity || 0));
       const matchesSearch =
         !term ||
         [product.sku, product.name, product.category, product.brand].join(" ").toLowerCase().includes(term);
 
-      return matchesDepartment && matchesSearch;
+      return matchesDepartment && matchesQuickFilter && matchesSearch;
     });
-  }, [activeDepartment, products, search]);
+  }, [activeDepartment, products, quickFilter, search]);
 
   const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
   const safePage = Math.min(page, pageCount);
@@ -119,7 +129,7 @@ export default function ProductAdminPanel() {
   useEffect(() => {
     setPage(1);
     setSelectedIds([]);
-  }, [activeDepartment, search]);
+  }, [activeDepartment, quickFilter, search]);
 
   const signIn = async (event) => {
     event.preventDefault();
@@ -176,6 +186,24 @@ export default function ProductAdminPanel() {
         current.map((product) => saved.find((item) => item.id === product.id) || product)
       );
       setNotice(`Actualizados ${saved.length} productos con ${margin}% de ganancia.`);
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setSavingId("");
+    }
+  };
+
+  const applyBulkPatch = async (patch, label) => {
+    const nextProducts = selectedProducts.map((product) => ({ ...product, ...patch }));
+
+    setSavingId("bulk");
+    setNotice("");
+    try {
+      const saved = await Promise.all(nextProducts.map(updateProduct));
+      setProducts((current) =>
+        current.map((product) => saved.find((item) => item.id === product.id) || product)
+      );
+      setNotice(`${label}: ${saved.length} productos actualizados.`);
     } catch (error) {
       setNotice(error.message);
     } finally {
@@ -269,6 +297,27 @@ export default function ProductAdminPanel() {
         </button>
       </div>
 
+      <div className="admin-quickbar">
+        {[
+          ["all", "Todos"],
+          ["published", "Publicados"],
+          ["hidden", "Ocultos"],
+          ["no-image", "Sin imagen"],
+          ["no-price", "Sin precio"],
+          ["low-stock", "Bajo stock"]
+        ].map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={quickFilter === id ? "is-active" : ""}
+            onClick={() => setQuickFilter(id)}
+          >
+            {label}
+          </button>
+        ))}
+        <span>{selectedIds.length ? `${selectedIds.length} seleccionados` : "Sin seleccion manual"}</span>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3">
         <article className="metric-card">
           <span>Productos</span>
@@ -314,6 +363,15 @@ export default function ProductAdminPanel() {
           <div className="admin-table-actions">
             <button type="button" onClick={toggleCurrentPage} className="btn btn-outline-light">
               Seleccionar pagina
+            </button>
+            <button type="button" onClick={() => applyBulkPatch({ isActive: true }, "Publicados")} className="btn btn-outline-light">
+              Publicar
+            </button>
+            <button type="button" onClick={() => applyBulkPatch({ isActive: false }, "Ocultados")} className="btn btn-outline-light">
+              Ocultar
+            </button>
+            <button type="button" onClick={() => applyBulkPatch({ isFeatured: true, isActive: true }, "Destacados")} className="btn btn-outline-light">
+              Destacar
             </button>
             <span>
               {selectedIds.length || filteredProducts.length} productos para accion masiva
@@ -493,6 +551,9 @@ export default function ProductAdminPanel() {
                   placeholder="https://..."
                 />
               </label>
+              {selectedProduct.imageUrl && (
+                <img src={selectedProduct.imageUrl} alt={selectedProduct.name} className="admin-image-preview" />
+              )}
               <div className="grid gap-3 sm:grid-cols-2">
                 <a href={imageSearchUrl} target="_blank" rel="noreferrer" className="btn btn-outline-light justify-center">
                   <ImagePlus size={18} />
