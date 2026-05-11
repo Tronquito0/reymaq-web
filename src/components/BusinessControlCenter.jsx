@@ -11,8 +11,10 @@ import {
   FileText,
   Headphones,
   History,
+  KeyRound,
   Lock,
   Plus,
+  ScanLine,
   ShieldCheck,
   TriangleAlert,
   UsersRound,
@@ -23,6 +25,7 @@ import { crmInquiries, employees, promoItems, salesMetrics } from "../data/admin
 import AttendancePanel from "./AttendancePanel";
 import BusinessFinancePanel from "./BusinessFinancePanel";
 import DailyCashPanel from "./DailyCashPanel";
+import EmployeeAccessPanel from "./EmployeeAccessPanel";
 import {
   AuditPanel,
   CustomerAccountsPanel,
@@ -35,11 +38,13 @@ import {
 } from "./OperationsPanels";
 import ProductAdminPanel from "./ProductAdminPanel";
 import SectionHeader from "./SectionHeader";
+import SupplierReceiptPanel from "./SupplierReceiptPanel";
 
 const tabs = [
   { id: "owner-dashboard", label: "Duenio", icon: BriefcaseBusiness },
   { id: "stock", label: "Stock", icon: Boxes },
   { id: "stock-alerts", label: "Alertas", icon: TriangleAlert },
+  { id: "supplier-receipts", label: "Remitos", icon: ScanLine },
   { id: "quotes", label: "Cotizaciones", icon: FileText },
   { id: "accounts", label: "Ctas ctes", icon: CreditCard },
   { id: "repairs", label: "Reparaciones", icon: Wrench },
@@ -51,6 +56,7 @@ const tabs = [
   { id: "promos", label: "Promos", icon: BadgePercent },
   { id: "reports", label: "Reportes", icon: BarChart3 },
   { id: "audit", label: "Auditoria", icon: History },
+  { id: "access", label: "Accesos", icon: KeyRound },
   { id: "employees", label: "Empleados", icon: UsersRound },
   { id: "roles", label: "Roles", icon: ShieldCheck }
 ];
@@ -124,6 +130,8 @@ export default function BusinessControlCenter() {
 
             {activeTab === "stock-alerts" && <SmartStockPanel />}
 
+            {activeTab === "supplier-receipts" && <SupplierReceiptPanel />}
+
             {activeTab === "quotes" && <QuotesPanel />}
 
             {activeTab === "accounts" && <CustomerAccountsPanel />}
@@ -191,6 +199,8 @@ export default function BusinessControlCenter() {
             )}
 
             {activeTab === "audit" && <AuditPanel />}
+
+            {activeTab === "access" && <EmployeeAccessPanel />}
 
             {activeTab === "employees" && (
               <div className="grid gap-4 lg:grid-cols-3">

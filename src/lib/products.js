@@ -105,3 +105,45 @@ export const updateProduct = async (product) => {
   if (error) throw error;
   return toProduct(data);
 };
+
+export const createProduct = async (product) => {
+  const baseName = product.name || "Producto nuevo";
+  const slugBase = baseName
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 70);
+
+  const { data, error } = await supabase
+    .from("products")
+    .insert({
+      slug: `${slugBase || "producto"}-${Date.now().toString().slice(-6)}`,
+      name: baseName,
+      category: product.category || "General",
+      description: product.description || "",
+      tag: product.tag || "Consultar stock",
+      stock_status: product.stockStatus || "available",
+      use_case: product.useCase || "",
+      brand: product.brand || "Varias marcas",
+      technical: product.technical || [],
+      sku: product.sku || null,
+      cost_price: Number(product.costPrice || 0),
+      sale_price: Number(product.salePrice || 0),
+      cash_price: Number(product.cashPrice || product.salePrice || 0),
+      wholesale_price: Number(product.wholesalePrice || 0),
+      card_3_markup_percent: Number(product.card3MarkupPercent || 35),
+      stock_quantity: Number(product.stockQuantity || 0),
+      min_stock_quantity: Number(product.minStockQuantity || 0),
+      image_url: product.imageUrl || null,
+      is_featured: Boolean(product.isFeatured),
+      is_active: product.isActive ?? true,
+      sort_order: Number(product.sortOrder || 0)
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return toProduct(data);
+};

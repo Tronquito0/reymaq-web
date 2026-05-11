@@ -1177,6 +1177,105 @@ body {
     @apply border-red-400/30 bg-red-500/10 text-red-100;
   }
 
+  .employee-access-form {
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-[1fr_1fr_180px_auto] md:items-end;
+  }
+
+  .employee-access-form .field-dark {
+    @apply mt-0;
+  }
+
+  .access-card p {
+    @apply mt-2 text-sm font-bold text-white/60;
+  }
+
+  .access-card div {
+    @apply mt-5 flex items-center justify-between gap-3 border-t border-white/10 pt-4;
+  }
+
+  .access-card span {
+    @apply text-xs font-black uppercase tracking-[0.14em] text-reyred;
+  }
+
+  .access-card strong {
+    @apply text-xs font-black uppercase tracking-[0.14em] text-white/60;
+  }
+
+  .access-note p {
+    @apply mt-3 text-sm leading-7 text-white/65;
+  }
+
+  .supplier-receipt-panel {
+    @apply grid gap-5;
+  }
+
+  .receipt-layout {
+    @apply grid gap-4 xl:grid-cols-[0.9fr_1.1fr];
+  }
+
+  .receipt-capture h4,
+  .receipt-text h4,
+  .receipt-review-head h4 {
+    @apply flex items-center gap-2;
+  }
+
+  .receipt-fields {
+    @apply mt-4 grid gap-3 sm:grid-cols-2;
+  }
+
+  .receipt-upload {
+    @apply mt-4 flex min-h-28 cursor-pointer flex-col items-center justify-center gap-3 border border-dashed border-white/20 bg-black/20 p-5 text-center text-sm font-black text-white/65 transition hover:border-reyred hover:text-white;
+  }
+
+  .receipt-upload input {
+    @apply sr-only;
+  }
+
+  .receipt-preview {
+    @apply mt-4 max-h-80 w-full border border-white/10 object-contain;
+  }
+
+  .receipt-text textarea {
+    @apply mt-4 min-h-72 w-full resize-y border border-white/10 bg-black/20 p-4 text-sm font-bold leading-6 text-white outline-none focus:border-reyred;
+  }
+
+  .receipt-analyze-actions {
+    @apply mt-4 flex flex-wrap gap-3;
+  }
+
+  .receipt-review-head {
+    @apply mb-4 flex flex-col gap-3 border border-white/10 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .receipt-review-head span {
+    @apply text-xs font-black uppercase tracking-[0.14em] text-reyred;
+  }
+
+  .receipt-items-table {
+    @apply overflow-auto border border-white/10 bg-black/20;
+  }
+
+  .receipt-item-row {
+    @apply grid min-w-[920px] grid-cols-[minmax(240px,1fr)_90px_120px_120px_120px_130px] gap-2 border-b border-white/10 p-2;
+  }
+
+  .receipt-item-head {
+    @apply sticky top-0 z-10 bg-[#1b1b1d] text-[10px] font-black uppercase tracking-[0.12em] text-white/45;
+  }
+
+  .receipt-item-row input,
+  .receipt-item-row select {
+    @apply min-h-10 border border-white/10 bg-white/[0.045] px-3 py-2 text-sm font-bold text-white outline-none focus:border-reyred;
+  }
+
+  .receipt-item-row option {
+    @apply bg-graphite text-white;
+  }
+
+  .receipt-empty {
+    @apply flex items-center gap-2 p-5 text-sm font-bold text-white/60;
+  }
+
   .map-placeholder {
     @apply relative min-h-[360px] overflow-hidden bg-graphite p-8 sm:p-10;
   }

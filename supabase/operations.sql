@@ -119,12 +119,67 @@ create table if not exists public.audit_events (
 create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users (id) on delete cascade,
+  email text,
   employee_name text not null,
   role text not null default 'employee'
     check (role in ('owner', 'admin', 'seller', 'employee', 'readonly')),
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table if not exists public.suppliers (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  phone text,
+  email text,
+  cuit text,
+  address text,
+  notes text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.supplier_purchases (
+  id uuid primary key default gen_random_uuid(),
+  supplier_id uuid references public.suppliers (id) on delete set null,
+  supplier_name text not null,
+  receipt_number text,
+  receipt_date date,
+  image_url text,
+  raw_text text not null default '',
+  total numeric(12, 2) not null default 0,
+  status text not null default 'draft'
+    check (status in ('draft', 'reviewed', 'applied', 'cancelled')),
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.supplier_purchase_items (
+  id uuid primary key default gen_random_uuid(),
+  purchase_id uuid not null references public.supplier_purchases (id) on delete cascade,
+  product_id uuid references public.products (id) on delete set null,
+  detected_name text not null,
+  quantity numeric(12, 2) not null default 1,
+  unit_cost numeric(12, 2) not null default 0,
+  margin_percent numeric(6, 2) not null default 35,
+  sale_price numeric(12, 2) not null default 0,
+  action text not null default 'update'
+    check (action in ('update', 'create', 'ignore')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.receipt_scans (
+  id uuid primary key default gen_random_uuid(),
+  supplier_purchase_id uuid references public.supplier_purchases (id) on delete set null,
+  image_url text,
+  raw_text text not null default '',
+  extracted_json jsonb not null default '{}'::jsonb,
+  status text not null default 'pending'
+    check (status in ('pending', 'analyzed', 'failed')),
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now()
 );
 
 create or replace view public.smart_stock_alerts as
@@ -160,6 +215,11 @@ create index if not exists repair_orders_status_idx on public.repair_orders (sta
 create index if not exists internal_tasks_status_idx on public.internal_tasks (status, priority);
 create index if not exists audit_events_created_idx on public.audit_events (created_at desc);
 create index if not exists user_roles_user_idx on public.user_roles (user_id, is_active);
+create index if not exists user_roles_email_idx on public.user_roles (lower(email), is_active);
+create index if not exists suppliers_name_idx on public.suppliers (name);
+create index if not exists supplier_purchases_supplier_idx on public.supplier_purchases (supplier_id, created_at desc);
+create index if not exists supplier_purchase_items_purchase_idx on public.supplier_purchase_items (purchase_id);
+create index if not exists receipt_scans_created_idx on public.receipt_scans (created_at desc);
 
 drop trigger if exists customers_set_updated_at on public.customers;
 create trigger customers_set_updated_at
@@ -197,6 +257,18 @@ before update on public.user_roles
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists suppliers_set_updated_at on public.suppliers;
+create trigger suppliers_set_updated_at
+before update on public.suppliers
+for each row
+execute function public.set_updated_at();
+
+drop trigger if exists supplier_purchases_set_updated_at on public.supplier_purchases;
+create trigger supplier_purchases_set_updated_at
+before update on public.supplier_purchases
+for each row
+execute function public.set_updated_at();
+
 alter table public.customers enable row level security;
 alter table public.quotes enable row level security;
 alter table public.quote_items enable row level security;
@@ -205,6 +277,14 @@ alter table public.repair_orders enable row level security;
 alter table public.internal_tasks enable row level security;
 alter table public.audit_events enable row level security;
 alter table public.user_roles enable row level security;
+alter table public.suppliers enable row level security;
+alter table public.supplier_purchases enable row level security;
+alter table public.supplier_purchase_items enable row level security;
+alter table public.receipt_scans enable row level security;
+
+insert into storage.buckets (id, name, public)
+values ('supplier-receipts', 'supplier-receipts', true)
+on conflict (id) do nothing;
 
 drop policy if exists "Authenticated users can manage customers" on public.customers;
 create policy "Authenticated users can manage customers"
@@ -282,3 +362,49 @@ for all
 to authenticated
 using (true)
 with check (true);
+
+drop policy if exists "Authenticated users can manage suppliers" on public.suppliers;
+create policy "Authenticated users can manage suppliers"
+on public.suppliers
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated users can manage supplier purchases" on public.supplier_purchases;
+create policy "Authenticated users can manage supplier purchases"
+on public.supplier_purchases
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated users can manage supplier purchase items" on public.supplier_purchase_items;
+create policy "Authenticated users can manage supplier purchase items"
+on public.supplier_purchase_items
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated users can manage receipt scans" on public.receipt_scans;
+create policy "Authenticated users can manage receipt scans"
+on public.receipt_scans
+for all
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated users can upload supplier receipts" on storage.objects;
+create policy "Authenticated users can upload supplier receipts"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'supplier-receipts');
+
+drop policy if exists "Authenticated users can read supplier receipts" on storage.objects;
+create policy "Authenticated users can read supplier receipts"
+on storage.objects
+for select
+to authenticated
+using (bucket_id = 'supplier-receipts');
