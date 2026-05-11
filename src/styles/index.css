@@ -364,11 +364,11 @@ body {
   }
 
   .control-topbar {
-    @apply flex flex-col gap-4 border-b border-white/10 bg-white/[0.035] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between;
+    @apply flex flex-col gap-4 border-b border-white/10 bg-white/[0.035] p-4 sm:p-6 lg:flex-row lg:items-center lg:justify-between;
   }
 
   .control-tabs {
-    @apply flex flex-wrap gap-2 border-b border-white/10 bg-black/20 p-3;
+    @apply flex gap-2 overflow-x-auto border-b border-white/10 bg-black/20 p-2 sm:flex-wrap sm:p-3;
     scrollbar-color: rgba(215, 25, 32, 0.75) rgba(255, 255, 255, 0.07);
     scrollbar-width: thin;
   }
@@ -406,7 +406,7 @@ body {
   }
 
   .control-tab {
-    @apply inline-flex min-h-12 shrink-0 items-center gap-2 border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-white/70 transition hover:-translate-y-0.5 hover:border-reyred hover:bg-white/[0.07] hover:text-white;
+    @apply inline-flex min-h-11 shrink-0 items-center gap-2 border border-white/10 bg-white/[0.04] px-3 py-2.5 text-xs font-black text-white/70 transition hover:-translate-y-0.5 hover:border-reyred hover:bg-white/[0.07] hover:text-white sm:min-h-12 sm:px-4 sm:py-3 sm:text-sm;
   }
 
   .control-tab-active {
@@ -414,11 +414,11 @@ body {
   }
 
   .control-content {
-    @apply p-3 sm:p-4 xl:p-5;
+    @apply p-2 sm:p-4 xl:p-5;
   }
 
   .control-card {
-    @apply min-w-0 border border-white/10 bg-white/[0.055] p-5 shadow-sm;
+    @apply min-w-0 border border-white/10 bg-white/[0.055] p-4 shadow-sm sm:p-5;
   }
 
   .control-card h4 {
@@ -851,7 +851,7 @@ body {
   }
 
   .metric-card {
-    @apply min-w-0 border border-white/10 bg-white/[0.055] p-5;
+    @apply min-w-0 border border-white/10 bg-white/[0.055] p-4 sm:p-5;
   }
 
   .metric-card span {
@@ -859,7 +859,7 @@ body {
   }
 
   .metric-card strong {
-    @apply mt-4 block font-display text-4xl font-black text-white;
+    @apply mt-3 block font-display text-3xl font-black text-white sm:mt-4 sm:text-4xl;
   }
 
   .metric-card p {
@@ -867,7 +867,7 @@ body {
   }
 
   .ops-panel-title {
-    @apply flex flex-col gap-4 border border-white/10 bg-white/[0.055] p-5 sm:flex-row sm:items-center;
+    @apply flex flex-col gap-3 border border-white/10 bg-white/[0.055] p-4 sm:flex-row sm:items-center sm:p-5;
   }
 
   .ops-panel-title > span {
@@ -879,7 +879,7 @@ body {
   }
 
   .ops-panel-title h3 {
-    @apply mt-1 font-display text-2xl font-black text-white;
+    @apply mt-1 font-display text-xl font-black leading-tight text-white sm:text-2xl;
   }
 
   .ops-panel-title small {
@@ -991,7 +991,7 @@ body {
   }
 
   .ops-form {
-    @apply grid min-w-0 gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-2 2xl:grid-cols-[minmax(180px,1fr)_minmax(150px,0.8fr)_140px_minmax(190px,1fr)_150px_auto] 2xl:items-end;
+    @apply grid min-w-0 gap-3 border border-white/10 bg-white/[0.055] p-3 sm:p-4 md:grid-cols-2 2xl:grid-cols-[minmax(180px,1fr)_minmax(150px,0.8fr)_140px_minmax(190px,1fr)_150px_auto] 2xl:items-end;
   }
 
   .ops-form .field-dark {
@@ -1011,7 +1011,7 @@ body {
   }
 
   .quote-items-builder {
-    @apply grid min-w-0 gap-3 border border-white/10 bg-black/20 p-4;
+    @apply grid min-w-0 gap-3 border border-white/10 bg-black/20 p-3 sm:p-4;
   }
 
   .quote-item-row {
@@ -1031,7 +1031,7 @@ body {
   }
 
   .quote-preview-shell {
-    @apply border border-white/10 bg-white/[0.055] p-4;
+    @apply border border-white/10 bg-white/[0.055] p-3 sm:p-4;
   }
 
   .quote-preview-actions {
@@ -1047,7 +1047,7 @@ body {
   }
 
   .quote-document {
-    @apply bg-white p-6 text-graphite shadow-hard;
+    @apply overflow-x-auto bg-white p-4 text-graphite shadow-hard sm:p-6;
   }
 
   .quote-document-head {
@@ -1321,6 +1321,143 @@ body {
   .tag {
     max-width: 112px;
     text-align: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .section.bg-graphite {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .control-topbar h3 {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .control-topbar > div:last-child {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.75rem;
+  }
+
+  .admin-quickbar span {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .admin-table-actions {
+    align-items: stretch;
+  }
+
+  .admin-table-actions span {
+    line-height: 1.5;
+  }
+
+  .ops-table {
+    display: grid;
+    gap: 0.75rem;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .ops-table-head {
+    display: none;
+  }
+
+  .ops-table-row {
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.055);
+    padding: 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  .ops-table-row button,
+  .ops-table-row a,
+  .ops-table-row select {
+    width: 100%;
+  }
+
+  .quote-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .quote-item-row {
+    grid-template-columns: 1fr;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.035);
+    padding: 0.75rem;
+  }
+
+  .icon-action {
+    width: 100%;
+  }
+
+  .quote-document-head,
+  .quote-brand {
+    align-items: flex-start;
+  }
+
+  .quote-logo-placeholder {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.1rem;
+  }
+
+  .quote-brand strong {
+    font-size: 1.5rem;
+  }
+
+  .quote-print-table {
+    min-width: 620px;
+  }
+
+  .receipt-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .receipt-item-row {
+    min-width: 0;
+    grid-template-columns: 1fr;
+    padding: 0.75rem;
+  }
+
+  .receipt-item-head {
+    display: none;
+  }
+
+  .receipt-items-table {
+    display: grid;
+    gap: 0.75rem;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .receipt-item-row:not(.receipt-item-head) {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .finance-table,
+  .inventory-table {
+    max-height: none;
+  }
+
+  .metric-card p,
+  .control-card p,
+  .ops-panel-title small {
+    line-height: 1.55;
   }
 }
 
