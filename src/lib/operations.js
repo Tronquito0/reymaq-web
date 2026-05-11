@@ -1,8 +1,10 @@
 import { supabase } from "./supabase";
+import { getAdminProducts, updateProduct } from "./products";
 
 const quoteStatusToDb = {
   Pendiente: "pending",
   Aceptado: "accepted",
+  Pagado: "paid",
   Rechazado: "rejected",
   Vencido: "expired"
 };
@@ -10,6 +12,7 @@ const quoteStatusToDb = {
 const quoteStatusFromDb = {
   pending: "Pendiente",
   accepted: "Aceptado",
+  paid: "Pagado",
   rejected: "Rechazado",
   expired: "Vencido"
 };
@@ -55,6 +58,7 @@ export const mapQuoteFromDb = (quote) => ({
   items:
     quote.quote_items?.map((item) => ({
       product: item.product_name,
+      productId: item.product_id || "",
       quantity: Number(item.quantity || 0),
       unitPrice: Number(item.unit_price || 0),
       discount: Number(item.discount_percent || 0),
@@ -64,6 +68,7 @@ export const mapQuoteFromDb = (quote) => ({
   subtotal: Number(quote.subtotal || 0),
   discount: Number(quote.discount_percent || 0),
   status: quoteStatusFromDb[quote.status] || "Pendiente",
+  stockApplied: Boolean(quote.stock_applied),
   notes: quote.notes || "",
   createdAt: quote.created_at
 });
@@ -107,6 +112,7 @@ export const createQuote = async ({ customer, customerPhone, items, discount, no
     const lineDiscount = lineSubtotal * (Number(item.discount || 0) / 100);
     return {
       quote_id: quote.id,
+      product_id: item.productId || null,
       product_name: item.product,
       quantity: Number(item.quantity || 0),
       unit_price: Number(item.unitPrice || 0),
@@ -128,6 +134,32 @@ export const updateQuoteStatus = async (quoteDbId, status) => {
     .eq("id", quoteDbId);
 
   if (error) throw error;
+};
+
+export const applyQuoteStockMovement = async (quote) => {
+  if (!quote.dbId) throw new Error("La cotizacion debe estar guardada en Supabase.");
+  if (quote.stockApplied) return quote;
+
+  const products = await getAdminProducts();
+  const stockItems = (quote.items || []).filter((item) => item.productId && Number(item.quantity || 0) > 0);
+
+  for (const item of stockItems) {
+    const product = products.find((entry) => entry.id === item.productId);
+    if (!product) continue;
+
+    await updateProduct({
+      ...product,
+      stockQuantity: Math.max(0, Number(product.stockQuantity || 0) - Number(item.quantity || 0))
+    });
+  }
+
+  const { error } = await supabase
+    .from("quotes")
+    .update({ status: "paid", stock_applied: true })
+    .eq("id", quote.dbId);
+
+  if (error) throw error;
+  return { ...quote, status: "Pagado", stockApplied: true };
 };
 
 export const getCustomerAccounts = async () => {

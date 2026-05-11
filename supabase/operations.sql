@@ -30,12 +30,13 @@ create table if not exists public.quotes (
   customer_name text not null,
   customer_phone text,
   status text not null default 'pending'
-    check (status in ('pending', 'accepted', 'rejected', 'expired')),
+    check (status in ('pending', 'accepted', 'paid', 'rejected', 'expired')),
   subtotal numeric(12, 2) not null default 0,
   discount_percent numeric(6, 2) not null default 0,
   discount_amount numeric(12, 2) not null default 0,
   total numeric(12, 2) not null default 0,
   notes text not null default '',
+  stock_applied boolean not null default false,
   expires_at date,
   created_by uuid references auth.users (id) on delete set null,
   created_at timestamptz not null default now(),
@@ -53,6 +54,16 @@ create table if not exists public.quote_items (
   line_total numeric(12, 2) not null default 0,
   created_at timestamptz not null default now()
 );
+
+alter table public.quotes
+drop constraint if exists quotes_status_check;
+
+alter table public.quotes
+add constraint quotes_status_check
+check (status in ('pending', 'accepted', 'paid', 'rejected', 'expired'));
+
+alter table public.quotes
+add column if not exists stock_applied boolean not null default false;
 
 create table if not exists public.customer_accounts (
   id uuid primary key default gen_random_uuid(),
@@ -182,6 +193,27 @@ create table if not exists public.receipt_scans (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.arca_invoices (
+  id uuid primary key default gen_random_uuid(),
+  quote_id uuid references public.quotes (id) on delete set null,
+  quote_number text,
+  customer_name text not null,
+  customer_document_type text not null default 'DNI',
+  customer_document_number text,
+  point_of_sale integer not null default 1,
+  voucher_type integer not null default 6,
+  invoice_number integer,
+  cae text,
+  cae_expires_at date,
+  total numeric(12, 2) not null default 0,
+  status text not null default 'draft'
+    check (status in ('draft', 'authorized', 'failed', 'cancelled')),
+  arca_response jsonb not null default '{}'::jsonb,
+  created_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create or replace view public.smart_stock_alerts as
 select
   id,
@@ -220,6 +252,7 @@ create index if not exists suppliers_name_idx on public.suppliers (name);
 create index if not exists supplier_purchases_supplier_idx on public.supplier_purchases (supplier_id, created_at desc);
 create index if not exists supplier_purchase_items_purchase_idx on public.supplier_purchase_items (purchase_id);
 create index if not exists receipt_scans_created_idx on public.receipt_scans (created_at desc);
+create index if not exists arca_invoices_quote_idx on public.arca_invoices (quote_id, created_at desc);
 
 drop trigger if exists customers_set_updated_at on public.customers;
 create trigger customers_set_updated_at
@@ -269,6 +302,12 @@ before update on public.supplier_purchases
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists arca_invoices_set_updated_at on public.arca_invoices;
+create trigger arca_invoices_set_updated_at
+before update on public.arca_invoices
+for each row
+execute function public.set_updated_at();
+
 alter table public.customers enable row level security;
 alter table public.quotes enable row level security;
 alter table public.quote_items enable row level security;
@@ -281,6 +320,7 @@ alter table public.suppliers enable row level security;
 alter table public.supplier_purchases enable row level security;
 alter table public.supplier_purchase_items enable row level security;
 alter table public.receipt_scans enable row level security;
+alter table public.arca_invoices enable row level security;
 
 insert into storage.buckets (id, name, public)
 values ('supplier-receipts', 'supplier-receipts', true)
@@ -408,3 +448,11 @@ on storage.objects
 for select
 to authenticated
 using (bucket_id = 'supplier-receipts');
+
+drop policy if exists "Authenticated users can manage arca invoices" on public.arca_invoices;
+create policy "Authenticated users can manage arca invoices"
+on public.arca_invoices
+for all
+to authenticated
+using (true)
+with check (true);

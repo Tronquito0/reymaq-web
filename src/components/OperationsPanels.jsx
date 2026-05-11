@@ -27,6 +27,7 @@ import {
   smartStockAlerts
 } from "../data/adminData";
 import {
+  applyQuoteStockMovement,
   createQuote,
   getAuditEvents,
   getCustomerAccounts,
@@ -36,6 +37,7 @@ import {
   updateQuoteStatus,
   updateTaskStatus
 } from "../lib/operations";
+import { getAdminProducts } from "../lib/products";
 
 const money = (value) =>
   Number(value || 0).toLocaleString("es-AR", {
@@ -154,6 +156,7 @@ export function SmartStockPanel() {
 
 export function QuotesPanel() {
   const [quotes, setQuotes] = useState(quotePipeline);
+  const [products, setProducts] = useState([]);
   const [selectedQuoteId, setSelectedQuoteId] = useState(quotePipeline[0]?.id || "");
   const [notice, setNotice] = useState("");
   const [draft, setDraft] = useState({
@@ -161,7 +164,7 @@ export function QuotesPanel() {
     customerPhone: "",
     discount: 0,
     notes: "",
-    items: [{ product: "", quantity: 1, unitPrice: "", discount: 0 }]
+    items: [{ productId: "", product: "", quantity: 1, unitPrice: "", discount: 0 }]
   });
 
   useEffect(() => {
@@ -175,9 +178,15 @@ export function QuotesPanel() {
       .catch(() => setNotice("Modo demo: crea las tablas de Supabase para guardar cotizaciones reales."));
   }, []);
 
+  useEffect(() => {
+    getAdminProducts()
+      .then(setProducts)
+      .catch(() => setNotice("No pude cargar el stock para seleccionar productos."));
+  }, []);
+
   const metrics = useMemo(() => {
     const total = quotes.length;
-    const closed = quotes.filter((quote) => quote.status === "Aceptado").length;
+    const closed = quotes.filter((quote) => ["Aceptado", "Pagado"].includes(quote.status)).length;
     const openMoney = quotes
       .filter((quote) => ["Pendiente", "Vencido"].includes(quote.status))
       .reduce((sum, quote) => sum + quote.amount, 0);
@@ -201,7 +210,7 @@ export function QuotesPanel() {
   const addDraftItem = () => {
     setDraft((current) => ({
       ...current,
-      items: [...current.items, { product: "", quantity: 1, unitPrice: "", discount: 0 }]
+      items: [...current.items, { productId: "", product: "", quantity: 1, unitPrice: "", discount: 0 }]
     }));
   };
 
@@ -226,6 +235,7 @@ export function QuotesPanel() {
         const subtotal = Number(item.unitPrice || 0) * Number(item.quantity || 0);
         return {
           ...item,
+          productId: item.productId || "",
           unitPrice: Number(item.unitPrice || 0),
           quantity: Number(item.quantity || 0),
           discount: Number(item.discount || 0),
@@ -261,7 +271,7 @@ export function QuotesPanel() {
       customerPhone: "",
       discount: 0,
       notes: "",
-      items: [{ product: "", quantity: 1, unitPrice: "", discount: 0 }]
+      items: [{ productId: "", product: "", quantity: 1, unitPrice: "", discount: 0 }]
     });
   };
 
@@ -272,6 +282,30 @@ export function QuotesPanel() {
       await updateQuoteStatus(quote.dbId, status);
     } catch (_error) {
       setNotice("No se pudo actualizar en Supabase. Revisa la tabla quotes.");
+    }
+  };
+
+  const selectProductForItem = (index, productId) => {
+    const product = products.find((item) => item.id === productId);
+    if (!product) {
+      patchDraftItem(index, { productId: "", product: "", unitPrice: "" });
+      return;
+    }
+
+    patchDraftItem(index, {
+      productId: product.id,
+      product: product.name,
+      unitPrice: product.salePrice || product.cashPrice || 0
+    });
+  };
+
+  const markQuotePaid = async (quote) => {
+    try {
+      const paidQuote = await applyQuoteStockMovement(quote);
+      setQuotes((current) => current.map((item) => (item.id === quote.id ? paidQuote : item)));
+      setNotice("Cotizacion marcada como pagada y stock descontado.");
+    } catch (error) {
+      setNotice(`No pude descontar stock: ${error.message}`);
     }
   };
 
@@ -336,8 +370,19 @@ export function QuotesPanel() {
         {draft.items.map((item, index) => (
           <div key={`draft-item-${index}`} className="quote-item-row">
             <label className="field field-dark">
+              Producto de stock
+              <select value={item.productId} onChange={(event) => selectProductForItem(index, event.target.value)}>
+                <option value="">Escribir manualmente</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} - stock {product.stockQuantity} - ${product.salePrice}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field field-dark">
               Producto
-              <input value={item.product} onChange={(event) => patchDraftItem(index, { product: event.target.value })} />
+              <input value={item.product} onChange={(event) => patchDraftItem(index, { product: event.target.value, productId: "" })} />
             </label>
             <label className="field field-dark">
               Cantidad
@@ -395,9 +440,20 @@ export function QuotesPanel() {
               <span>{quote.customer}</span>
               <span>{quote.products}</span>
               <span>{money(quote.amount)}</span>
-              <select value={quote.status} onChange={(event) => setQuoteStatus(quote, event.target.value)}>
+              <select
+                value={quote.status}
+                onChange={(event) => {
+                  const nextStatus = event.target.value;
+                  if (nextStatus === "Pagado") {
+                    markQuotePaid(quote);
+                    return;
+                  }
+                  setQuoteStatus(quote, nextStatus);
+                }}
+              >
                 <option>Pendiente</option>
                 <option>Aceptado</option>
+                <option>Pagado</option>
                 <option>Rechazado</option>
                 <option>Vencido</option>
               </select>
@@ -409,6 +465,17 @@ export function QuotesPanel() {
                 <button type="button" onClick={() => printQuote(quote)}>
                   <FileDown size={16} />
                   PDF
+                </button>
+                <button type="button" onClick={() => markQuotePaid(quote)} disabled={quote.stockApplied}>
+                  {quote.stockApplied ? "Stock OK" : "Pagado"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setNotice("ARCA preparado: falta cargar CUIT, punto de venta y certificado WSAA para emitir CAE real.")
+                  }
+                >
+                  ARCA
                 </button>
               </div>
             </div>
