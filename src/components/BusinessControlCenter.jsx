@@ -2,37 +2,61 @@ import {
   BadgePercent,
   BarChart3,
   Boxes,
+  BriefcaseBusiness,
   CheckCircle2,
-  ClipboardList,
   CircleDollarSign,
   ClipboardCheck,
+  ClipboardList,
+  CreditCard,
+  FileText,
   Headphones,
+  History,
   Lock,
   Plus,
   ShieldCheck,
-  UsersRound
+  TriangleAlert,
+  UsersRound,
+  Wrench
 } from "lucide-react";
 import { useState } from "react";
 import { crmInquiries, employees, promoItems, salesMetrics } from "../data/adminData";
 import AttendancePanel from "./AttendancePanel";
 import BusinessFinancePanel from "./BusinessFinancePanel";
 import DailyCashPanel from "./DailyCashPanel";
+import {
+  AuditPanel,
+  CustomerAccountsPanel,
+  OwnerDashboardPanel,
+  QuotesPanel,
+  RepairsPanel,
+  RolesPanel,
+  SmartStockPanel,
+  TasksPanel
+} from "./OperationsPanels";
 import ProductAdminPanel from "./ProductAdminPanel";
 import SectionHeader from "./SectionHeader";
 
 const tabs = [
+  { id: "owner-dashboard", label: "Duenio", icon: BriefcaseBusiness },
   { id: "stock", label: "Stock", icon: Boxes },
+  { id: "stock-alerts", label: "Alertas", icon: TriangleAlert },
+  { id: "quotes", label: "Cotizaciones", icon: FileText },
+  { id: "accounts", label: "Ctas ctes", icon: CreditCard },
+  { id: "repairs", label: "Reparaciones", icon: Wrench },
+  { id: "tasks", label: "Tareas", icon: ClipboardList },
   { id: "daily-cash", label: "Carga diaria", icon: ClipboardCheck },
   { id: "finance", label: "Finanzas", icon: CircleDollarSign },
   { id: "attendance", label: "Presentismo", icon: CheckCircle2 },
   { id: "crm", label: "CRM", icon: Headphones },
   { id: "promos", label: "Promos", icon: BadgePercent },
   { id: "reports", label: "Reportes", icon: BarChart3 },
-  { id: "employees", label: "Empleados", icon: UsersRound }
+  { id: "audit", label: "Auditoria", icon: History },
+  { id: "employees", label: "Empleados", icon: UsersRound },
+  { id: "roles", label: "Roles", icon: ShieldCheck }
 ];
 
 export default function BusinessControlCenter() {
-  const [activeTab, setActiveTab] = useState("stock");
+  const [activeTab, setActiveTab] = useState("owner-dashboard");
   const [inquiries, setInquiries] = useState(crmInquiries);
   const [promos, setPromos] = useState(promoItems);
 
@@ -94,7 +118,19 @@ export default function BusinessControlCenter() {
           </div>
 
           <div className="control-content">
+            {activeTab === "owner-dashboard" && <OwnerDashboardPanel />}
+
             {activeTab === "stock" && <ProductAdminPanel />}
+
+            {activeTab === "stock-alerts" && <SmartStockPanel />}
+
+            {activeTab === "quotes" && <QuotesPanel />}
+
+            {activeTab === "accounts" && <CustomerAccountsPanel />}
+
+            {activeTab === "repairs" && <RepairsPanel />}
+
+            {activeTab === "tasks" && <TasksPanel />}
 
             {activeTab === "daily-cash" && <DailyCashPanel />}
 
@@ -154,6 +190,8 @@ export default function BusinessControlCenter() {
               </div>
             )}
 
+            {activeTab === "audit" && <AuditPanel />}
+
             {activeTab === "employees" && (
               <div className="grid gap-4 lg:grid-cols-3">
                 {employees.map((employee) => (
@@ -174,6 +212,8 @@ export default function BusinessControlCenter() {
                 ))}
               </div>
             )}
+
+            {activeTab === "roles" && <RolesPanel />}
           </div>
         </div>
       </div>

@@ -832,6 +832,182 @@ body {
     @apply mt-3 text-sm font-black text-reyred;
   }
 
+  .ops-panel-title {
+    @apply flex flex-col gap-4 border border-white/10 bg-white/[0.055] p-5 sm:flex-row sm:items-center;
+  }
+
+  .ops-panel-title > span {
+    @apply grid size-12 shrink-0 place-items-center bg-reyred text-white;
+  }
+
+  .ops-panel-title p {
+    @apply text-xs font-black uppercase tracking-[0.16em] text-reyred;
+  }
+
+  .ops-panel-title h3 {
+    @apply mt-1 font-display text-2xl font-black text-white;
+  }
+
+  .ops-panel-title small {
+    @apply mt-2 block text-sm font-bold leading-6 text-white/60;
+  }
+
+  .ops-kpi-card span {
+    @apply text-xs font-black uppercase tracking-[0.16em] text-white/50;
+  }
+
+  .ops-kpi-card p {
+    @apply mt-2 text-sm font-black text-white/70;
+  }
+
+  .ops-kpi-card small {
+    @apply mt-3 block text-xs font-black uppercase tracking-[0.12em] text-reyred;
+  }
+
+  .ops-list {
+    @apply mt-4 grid gap-2;
+  }
+
+  .ops-list div {
+    @apply border border-white/10 bg-black/20 p-3;
+  }
+
+  .ops-list strong {
+    @apply block text-sm font-black text-white;
+  }
+
+  .ops-list span {
+    @apply mt-1 block text-xs font-bold leading-5 text-white/55;
+  }
+
+  .ops-table {
+    @apply overflow-auto border border-white/10 bg-black/20;
+  }
+
+  .ops-table-row {
+    @apply grid min-w-[840px] items-center gap-3 border-b border-white/10 px-3 py-3 text-sm font-bold text-white/65;
+  }
+
+  .ops-table-head {
+    @apply sticky top-0 z-10 bg-[#1b1b1d] text-[10px] font-black uppercase tracking-[0.12em] text-white/45;
+  }
+
+  .ops-table-row strong {
+    @apply text-white;
+  }
+
+  .ops-table-row button,
+  .ops-table-row a,
+  .ops-table-row select {
+    @apply inline-flex min-h-10 items-center justify-center gap-2 border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-white outline-none transition hover:border-reyred;
+  }
+
+  .ops-table-row option {
+    @apply bg-graphite text-white;
+  }
+
+  .stock-alert-grid {
+    @apply grid-cols-[minmax(190px,1fr)_70px_150px_minmax(190px,1fr)_160px];
+  }
+
+  .quote-grid {
+    @apply grid-cols-[90px_160px_minmax(210px,1fr)_130px_140px_130px];
+  }
+
+  .account-grid {
+    @apply grid-cols-[180px_130px_130px_130px_130px_120px];
+  }
+
+  .audit-grid {
+    @apply grid-cols-[130px_150px_minmax(260px,1fr)_170px];
+  }
+
+  .ops-status {
+    @apply inline-flex w-fit border px-3 py-2 text-[11px] font-black uppercase tracking-[0.1em];
+  }
+
+  .ops-status-danger,
+  .ops-status-atrasado,
+  .ops-status-bloqueado {
+    @apply border-red-400/40 bg-red-500/10 text-red-200;
+  }
+
+  .ops-status-warning,
+  .ops-status-diagnosticando,
+  .ops-status-esperando-repuesto {
+    @apply border-amber-300/40 bg-amber-400/10 text-amber-100;
+  }
+
+  .ops-status-success,
+  .ops-status-listo,
+  .ops-status-al-dia {
+    @apply border-emerald-300/40 bg-emerald-400/10 text-emerald-100;
+  }
+
+  .ops-alert {
+    @apply flex items-center gap-3 border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-black text-red-100;
+  }
+
+  .ops-form {
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-2 xl:grid-cols-[1fr_1.2fr_110px_130px_150px_auto] xl:items-end;
+  }
+
+  .ops-form .field-dark {
+    @apply mt-0;
+  }
+
+  .repair-card h4 {
+    @apply mt-4 text-lg leading-tight;
+  }
+
+  .repair-card p {
+    @apply mt-2 text-sm font-bold text-white/60;
+  }
+
+  .repair-card small {
+    @apply text-xs font-black uppercase tracking-[0.12em] text-white/50;
+  }
+
+  .task-row {
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-[1fr_180px] md:items-center;
+  }
+
+  .task-row strong {
+    @apply block font-display text-lg font-black text-white;
+  }
+
+  .task-row span {
+    @apply mt-1 block text-xs font-black uppercase tracking-[0.12em] text-white/50;
+  }
+
+  .task-row select {
+    @apply min-h-11 border border-white/10 bg-black/20 px-3 py-2 text-sm font-black text-white outline-none focus:border-reyred;
+  }
+
+  .task-row option {
+    @apply bg-graphite text-white;
+  }
+
+  .role-card p {
+    @apply mt-2 text-sm font-bold leading-6 text-white/60;
+  }
+
+  .role-card > strong {
+    @apply mt-5 block text-xs font-black uppercase tracking-[0.16em] text-reyred;
+  }
+
+  .ops-chip-list {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
+  .ops-chip-list span {
+    @apply border border-emerald-300/25 bg-emerald-400/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.09em] text-emerald-100;
+  }
+
+  .ops-chip-list.is-blocked span {
+    @apply border-red-400/30 bg-red-500/10 text-red-100;
+  }
+
   .map-placeholder {
     @apply relative min-h-[360px] overflow-hidden bg-graphite p-8 sm:p-10;
   }
