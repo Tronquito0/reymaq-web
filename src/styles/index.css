@@ -368,11 +368,45 @@ body {
   }
 
   .control-tabs {
-    @apply flex gap-2 overflow-x-auto border-b border-white/10 bg-black/20 p-3;
+    @apply flex flex-wrap gap-2 border-b border-white/10 bg-black/20 p-3;
+    scrollbar-color: rgba(215, 25, 32, 0.75) rgba(255, 255, 255, 0.07);
+    scrollbar-width: thin;
+  }
+
+  .control-tabs::-webkit-scrollbar,
+  .ops-table::-webkit-scrollbar,
+  .inventory-table::-webkit-scrollbar,
+  .admin-department-list::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .control-tabs::-webkit-scrollbar-track,
+  .ops-table::-webkit-scrollbar-track,
+  .inventory-table::-webkit-scrollbar-track,
+  .admin-department-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+  }
+
+  .control-tabs::-webkit-scrollbar-thumb,
+  .ops-table::-webkit-scrollbar-thumb,
+  .inventory-table::-webkit-scrollbar-thumb,
+  .admin-department-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(90deg, #d71920, #7f1115);
+    border: 2px solid #151517;
+    border-radius: 999px;
+  }
+
+  .control-tabs::-webkit-scrollbar-corner,
+  .ops-table::-webkit-scrollbar-corner,
+  .inventory-table::-webkit-scrollbar-corner,
+  .admin-department-list::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
   .control-tab {
-    @apply inline-flex min-h-12 shrink-0 items-center gap-2 border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-white/70 transition hover:border-reyred hover:text-white;
+    @apply inline-flex min-h-12 shrink-0 items-center gap-2 border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-white/70 transition hover:-translate-y-0.5 hover:border-reyred hover:bg-white/[0.07] hover:text-white;
   }
 
   .control-tab-active {
@@ -914,6 +948,14 @@ body {
     @apply grid-cols-[90px_160px_minmax(210px,1fr)_130px_140px_130px];
   }
 
+  .ops-table-row.is-selected {
+    @apply bg-reyred/10;
+  }
+
+  .quote-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
   .account-grid {
     @apply grid-cols-[180px_130px_130px_130px_130px_120px];
   }
@@ -949,11 +991,138 @@ body {
   }
 
   .ops-form {
-    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-2 xl:grid-cols-[1fr_1.2fr_110px_130px_150px_auto] xl:items-end;
+    @apply grid gap-3 border border-white/10 bg-white/[0.055] p-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_150px_minmax(180px,1fr)_150px_auto] xl:items-end;
   }
 
   .ops-form .field-dark {
     @apply mt-0;
+  }
+
+  .quote-draft-total {
+    @apply grid min-h-12 content-center border border-white/10 bg-black/20 px-4 py-3;
+  }
+
+  .quote-draft-total span {
+    @apply text-[10px] font-black uppercase tracking-[0.14em] text-white/45;
+  }
+
+  .quote-draft-total strong {
+    @apply mt-1 font-display text-xl font-black text-white;
+  }
+
+  .quote-items-builder {
+    @apply grid gap-3 border border-white/10 bg-black/20 p-4;
+  }
+
+  .quote-item-row {
+    @apply grid gap-3 md:grid-cols-[minmax(220px,1fr)_110px_150px_130px_44px] md:items-end;
+  }
+
+  .quote-item-row .field-dark {
+    @apply mt-0;
+  }
+
+  .icon-action {
+    @apply grid size-11 place-items-center border border-white/10 bg-white/[0.045] text-white/65 transition hover:border-reyred hover:text-white;
+  }
+
+  .quote-preview-shell {
+    @apply border border-white/10 bg-white/[0.055] p-4;
+  }
+
+  .quote-preview-actions {
+    @apply mb-4 flex flex-col gap-3 border border-white/10 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .quote-preview-actions span {
+    @apply text-xs font-black uppercase tracking-[0.14em] text-reyred;
+  }
+
+  .quote-preview-actions strong {
+    @apply mt-1 block font-display text-xl font-black text-white;
+  }
+
+  .quote-document {
+    @apply bg-white p-6 text-graphite shadow-hard;
+  }
+
+  .quote-document-head {
+    @apply flex flex-col gap-5 border-b-4 border-reyred pb-5 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .quote-brand {
+    @apply flex items-center gap-4;
+  }
+
+  .quote-logo-placeholder {
+    @apply grid size-16 place-items-center bg-reyred font-display text-2xl font-black text-white;
+  }
+
+  .quote-brand strong {
+    @apply block font-display text-3xl font-black text-graphite;
+  }
+
+  .quote-brand span,
+  .quote-document-meta span,
+  .quote-client-box span {
+    @apply text-xs font-black uppercase tracking-[0.14em] text-steel;
+  }
+
+  .quote-document-meta {
+    @apply border border-black/10 bg-warm p-4 text-left sm:text-right;
+  }
+
+  .quote-document-meta strong {
+    @apply mt-2 block font-display text-2xl font-black text-graphite;
+  }
+
+  .quote-document-meta small,
+  .quote-client-box small {
+    @apply mt-1 block text-xs font-bold text-steel;
+  }
+
+  .quote-client-box {
+    @apply my-5 grid gap-3 sm:grid-cols-2;
+  }
+
+  .quote-client-box div {
+    @apply border border-black/10 bg-warm p-4;
+  }
+
+  .quote-client-box strong {
+    @apply mt-2 block font-display text-xl font-black text-graphite;
+  }
+
+  .quote-print-table {
+    @apply border border-black/10;
+  }
+
+  .quote-print-row {
+    @apply grid grid-cols-[minmax(180px,1fr)_70px_110px_80px_120px] gap-3 border-b border-black/10 px-3 py-3 text-sm;
+  }
+
+  .quote-print-head {
+    @apply bg-graphite text-[10px] font-black uppercase tracking-[0.12em] text-white;
+  }
+
+  .quote-print-row strong {
+    @apply text-graphite;
+  }
+
+  .quote-document-footer {
+    @apply mt-5 grid gap-4 sm:grid-cols-[1fr_260px];
+  }
+
+  .quote-document-footer p {
+    @apply text-sm leading-6 text-steel;
+  }
+
+  .quote-document-footer div {
+    @apply grid gap-2 border border-black/10 bg-warm p-4 text-sm font-black text-graphite;
+  }
+
+  .quote-document-footer strong {
+    @apply border-t border-black/10 pt-3 font-display text-2xl text-reyred;
   }
 
   .repair-card h4 {
@@ -1049,5 +1218,36 @@ body {
   .tag {
     max-width: 112px;
     text-align: center;
+  }
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #quote-print-area,
+  #quote-print-area * {
+    visibility: visible !important;
+  }
+
+  #quote-print-area {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    padding: 24px !important;
+  }
+
+  .quote-document {
+    color: #111111 !important;
+  }
+
+  @page {
+    margin: 12mm;
   }
 }

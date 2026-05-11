@@ -4,14 +4,18 @@ import {
   CheckCircle2,
   ClipboardList,
   CreditCard,
+  FileDown,
   FileText,
   History,
   MessageCircle,
+  Plus,
+  Printer,
   ShieldCheck,
   Star,
+  Trash2,
   Wrench
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   auditEvents,
   customerAccounts,
@@ -22,6 +26,16 @@ import {
   rolePermissions,
   smartStockAlerts
 } from "../data/adminData";
+import {
+  createQuote,
+  getAuditEvents,
+  getCustomerAccounts,
+  getInternalTasks,
+  getQuotes,
+  getRepairOrders,
+  updateQuoteStatus,
+  updateTaskStatus
+} from "../lib/operations";
 
 const money = (value) =>
   Number(value || 0).toLocaleString("es-AR", {
@@ -140,13 +154,26 @@ export function SmartStockPanel() {
 
 export function QuotesPanel() {
   const [quotes, setQuotes] = useState(quotePipeline);
+  const [selectedQuoteId, setSelectedQuoteId] = useState(quotePipeline[0]?.id || "");
+  const [notice, setNotice] = useState("");
   const [draft, setDraft] = useState({
     customer: "",
-    products: "",
-    quantity: 1,
+    customerPhone: "",
     discount: 0,
-    amount: ""
+    notes: "",
+    items: [{ product: "", quantity: 1, unitPrice: "", discount: 0 }]
   });
+
+  useEffect(() => {
+    getQuotes()
+      .then((items) => {
+        if (!items.length) return;
+        setQuotes(items);
+        setSelectedQuoteId(items[0].id);
+        setNotice("Cotizaciones conectadas a Supabase.");
+      })
+      .catch(() => setNotice("Modo demo: crea las tablas de Supabase para guardar cotizaciones reales."));
+  }, []);
 
   const metrics = useMemo(() => {
     const total = quotes.length;
@@ -157,22 +184,100 @@ export function QuotesPanel() {
     return { total, closed, openMoney };
   }, [quotes]);
 
-  const addQuote = (event) => {
+  const selectedQuote = quotes.find((quote) => quote.id === selectedQuoteId) || quotes[0];
+  const draftSubtotal = draft.items.reduce(
+    (sum, item) => sum + Number(item.unitPrice || 0) * Number(item.quantity || 0),
+    0
+  );
+  const draftTotal = Math.max(0, Math.round(draftSubtotal * (1 - Number(draft.discount || 0) / 100)));
+
+  const patchDraftItem = (index, patch) => {
+    setDraft((current) => ({
+      ...current,
+      items: current.items.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item))
+    }));
+  };
+
+  const addDraftItem = () => {
+    setDraft((current) => ({
+      ...current,
+      items: [...current.items, { product: "", quantity: 1, unitPrice: "", discount: 0 }]
+    }));
+  };
+
+  const removeDraftItem = (index) => {
+    setDraft((current) => ({
+      ...current,
+      items: current.items.length === 1 ? current.items : current.items.filter((_item, itemIndex) => itemIndex !== index)
+    }));
+  };
+
+  const addQuote = async (event) => {
     event.preventDefault();
-    if (!draft.customer || !draft.products || !draft.amount) return;
-    const amount = Math.round(Number(draft.amount) * (1 - Number(draft.discount || 0) / 100));
-    setQuotes((current) => [
-      {
-        id: `COT-${1043 + current.length}`,
+    const cleanItems = draft.items.filter((item) => item.product && Number(item.quantity) > 0);
+    if (!draft.customer || !cleanItems.length) return;
+
+    const localQuote = {
+      id: `COT-${1043 + quotes.length}`,
+      customer: draft.customer,
+      customerPhone: draft.customerPhone,
+      products: cleanItems.map((item) => `${item.product} x${item.quantity}`).join(", "),
+      items: cleanItems.map((item) => {
+        const subtotal = Number(item.unitPrice || 0) * Number(item.quantity || 0);
+        return {
+          ...item,
+          unitPrice: Number(item.unitPrice || 0),
+          quantity: Number(item.quantity || 0),
+          discount: Number(item.discount || 0),
+          total: Math.max(0, Math.round(subtotal * (1 - Number(item.discount || 0) / 100)))
+        };
+      }),
+      subtotal: draftSubtotal,
+      amount: draftTotal,
+      discount: Number(draft.discount || 0),
+      notes: draft.notes,
+      status: "Pendiente"
+    };
+
+    try {
+      const saved = await createQuote({
         customer: draft.customer,
-        products: `${draft.products} x${draft.quantity}`,
-        amount,
-        discount: Number(draft.discount || 0),
-        status: "Pendiente"
-      },
-      ...current
-    ]);
-    setDraft({ customer: "", products: "", quantity: 1, discount: 0, amount: "" });
+        customerPhone: draft.customerPhone,
+        items: cleanItems,
+        discount: draft.discount,
+        notes: draft.notes
+      });
+      setQuotes((current) => [saved, ...current]);
+      setSelectedQuoteId(saved.id);
+      setNotice("Cotizacion guardada en Supabase.");
+    } catch (_error) {
+      setQuotes((current) => [localQuote, ...current]);
+      setSelectedQuoteId(localQuote.id);
+      setNotice("Cotizacion creada en modo demo. Crea las tablas para guardarla en Supabase.");
+    }
+
+    setDraft({
+      customer: "",
+      customerPhone: "",
+      discount: 0,
+      notes: "",
+      items: [{ product: "", quantity: 1, unitPrice: "", discount: 0 }]
+    });
+  };
+
+  const setQuoteStatus = async (quote, status) => {
+    setQuotes((current) => current.map((item) => (item.id === quote.id ? { ...item, status } : item)));
+    if (!quote.dbId) return;
+    try {
+      await updateQuoteStatus(quote.dbId, status);
+    } catch (_error) {
+      setNotice("No se pudo actualizar en Supabase. Revisa la tabla quotes.");
+    }
+  };
+
+  const printQuote = (quote) => {
+    setSelectedQuoteId(quote.id);
+    setTimeout(() => window.print(), 80);
   };
 
   return (
@@ -183,6 +288,8 @@ export function QuotesPanel() {
         title="Presupuestos rapidos para obra, talleres y clientes frecuentes"
         detail="Carga cliente, productos, descuento, total, estado y salida directa a WhatsApp."
       />
+      {notice && <p className="admin-notice">{notice}</p>}
+
       <div className="grid gap-4 md:grid-cols-3">
         <article className="metric-card">
           <span>Cotizaciones</span>
@@ -207,23 +314,69 @@ export function QuotesPanel() {
           <input value={draft.customer} onChange={(event) => setDraft({ ...draft, customer: event.target.value })} />
         </label>
         <label className="field field-dark">
-          Productos
-          <input value={draft.products} onChange={(event) => setDraft({ ...draft, products: event.target.value })} />
+          WhatsApp
+          <input value={draft.customerPhone} onChange={(event) => setDraft({ ...draft, customerPhone: event.target.value })} />
         </label>
         <label className="field field-dark">
-          Cantidad
-          <input type="number" value={draft.quantity} onChange={(event) => setDraft({ ...draft, quantity: event.target.value })} />
-        </label>
-        <label className="field field-dark">
-          Descuento %
+          Descuento general %
           <input type="number" value={draft.discount} onChange={(event) => setDraft({ ...draft, discount: event.target.value })} />
         </label>
         <label className="field field-dark">
-          Total
-          <input type="number" value={draft.amount} onChange={(event) => setDraft({ ...draft, amount: event.target.value })} />
+          Notas
+          <input value={draft.notes} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} />
         </label>
+        <div className="quote-draft-total">
+          <span>Total</span>
+          <strong>{money(draftTotal)}</strong>
+        </div>
         <button type="submit" className="btn btn-primary">Crear</button>
       </form>
+
+      <div className="quote-items-builder">
+        {draft.items.map((item, index) => (
+          <div key={`draft-item-${index}`} className="quote-item-row">
+            <label className="field field-dark">
+              Producto
+              <input value={item.product} onChange={(event) => patchDraftItem(index, { product: event.target.value })} />
+            </label>
+            <label className="field field-dark">
+              Cantidad
+              <input type="number" value={item.quantity} onChange={(event) => patchDraftItem(index, { quantity: event.target.value })} />
+            </label>
+            <label className="field field-dark">
+              Precio unitario
+              <input type="number" value={item.unitPrice} onChange={(event) => patchDraftItem(index, { unitPrice: event.target.value })} />
+            </label>
+            <label className="field field-dark">
+              Desc. item %
+              <input type="number" value={item.discount} onChange={(event) => patchDraftItem(index, { discount: event.target.value })} />
+            </label>
+            <button type="button" onClick={() => removeDraftItem(index)} className="icon-action" aria-label="Quitar producto">
+              <Trash2 size={17} />
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addDraftItem} className="btn btn-outline-light w-fit">
+          <Plus size={18} />
+          Agregar producto
+        </button>
+      </div>
+
+      {selectedQuote && (
+        <div className="quote-preview-shell">
+          <div className="quote-preview-actions">
+            <div>
+              <span>Vista imprimible</span>
+              <strong>{selectedQuote.id} - {selectedQuote.customer}</strong>
+            </div>
+            <button type="button" onClick={() => printQuote(selectedQuote)} className="btn btn-light">
+              <Printer size={18} />
+              Imprimir / PDF
+            </button>
+          </div>
+          <QuoteDocument quote={selectedQuote} />
+        </div>
+      )}
 
       <div className="ops-table">
         <div className="ops-table-row ops-table-head quote-grid">
@@ -232,33 +385,32 @@ export function QuotesPanel() {
           <span>Productos</span>
           <span>Total</span>
           <span>Estado</span>
-          <span>WhatsApp</span>
+          <span>Acciones</span>
         </div>
         {quotes.map((quote) => {
           const text = `Hola, te paso la cotizacion ${quote.id}: ${quote.products}. Total ${money(quote.amount)}.`;
           return (
-            <div key={quote.id} className="ops-table-row quote-grid">
-              <strong>{quote.id}</strong>
+            <div key={quote.id} className={`ops-table-row quote-grid ${selectedQuote?.id === quote.id ? "is-selected" : ""}`}>
+              <button type="button" onClick={() => setSelectedQuoteId(quote.id)}>{quote.id}</button>
               <span>{quote.customer}</span>
               <span>{quote.products}</span>
               <span>{money(quote.amount)}</span>
-              <select
-                value={quote.status}
-                onChange={(event) =>
-                  setQuotes((current) =>
-                    current.map((item) => (item.id === quote.id ? { ...item, status: event.target.value } : item))
-                  )
-                }
-              >
+              <select value={quote.status} onChange={(event) => setQuoteStatus(quote, event.target.value)}>
                 <option>Pendiente</option>
                 <option>Aceptado</option>
                 <option>Rechazado</option>
                 <option>Vencido</option>
               </select>
-              <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer">
-                <MessageCircle size={16} />
-                Enviar
-              </a>
+              <div className="quote-actions">
+                <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer">
+                  <MessageCircle size={16} />
+                  Enviar
+                </a>
+                <button type="button" onClick={() => printQuote(quote)}>
+                  <FileDown size={16} />
+                  PDF
+                </button>
+              </div>
             </div>
           );
         })}
@@ -267,7 +419,89 @@ export function QuotesPanel() {
   );
 }
 
+function QuoteDocument({ quote }) {
+  const items = quote.items?.length
+    ? quote.items
+    : [{ product: quote.products, quantity: 1, unitPrice: quote.amount, discount: quote.discount || 0, total: quote.amount }];
+  const subtotal = quote.subtotal || items.reduce((sum, item) => sum + Number(item.unitPrice || 0) * Number(item.quantity || 0), 0);
+  const total = quote.amount || subtotal;
+
+  return (
+    <article className="quote-document" id="quote-print-area">
+      <header className="quote-document-head">
+        <div className="quote-brand">
+          <div className="quote-logo-placeholder">RM</div>
+          <div>
+            <strong>ReyMaq</strong>
+            <span>Ferreteria, herramientas y maquinas</span>
+          </div>
+        </div>
+        <div className="quote-document-meta">
+          <span>Presupuesto</span>
+          <strong>{quote.id}</strong>
+          <small>{new Date().toLocaleDateString("es-AR")}</small>
+        </div>
+      </header>
+
+      <section className="quote-client-box">
+        <div>
+          <span>Cliente</span>
+          <strong>{quote.customer}</strong>
+          {quote.customerPhone && <small>WhatsApp: {quote.customerPhone}</small>}
+        </div>
+        <div>
+          <span>Estado</span>
+          <strong>{quote.status}</strong>
+          <small>Validez sugerida: 7 dias</small>
+        </div>
+      </section>
+
+      <div className="quote-print-table">
+        <div className="quote-print-row quote-print-head">
+          <span>Producto</span>
+          <span>Cant.</span>
+          <span>Unitario</span>
+          <span>Desc.</span>
+          <span>Total</span>
+        </div>
+        {items.map((item, index) => {
+          const lineSubtotal = Number(item.unitPrice || 0) * Number(item.quantity || 0);
+          const lineTotal = item.total || Math.max(0, Math.round(lineSubtotal * (1 - Number(item.discount || 0) / 100)));
+          return (
+            <div key={`${item.product}-${index}`} className="quote-print-row">
+              <strong>{item.product}</strong>
+              <span>{item.quantity}</span>
+              <span>{money(item.unitPrice)}</span>
+              <span>{Number(item.discount || 0)}%</span>
+              <span>{money(lineTotal)}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <footer className="quote-document-footer">
+        <p>{quote.notes || "Precios sujetos a disponibilidad de stock y confirmacion al momento de la compra."}</p>
+        <div>
+          <span>Subtotal {money(subtotal)}</span>
+          <span>Descuento {Number(quote.discount || 0)}%</span>
+          <strong>Total {money(total)}</strong>
+        </div>
+      </footer>
+    </article>
+  );
+}
+
 export function CustomerAccountsPanel() {
+  const [accounts, setAccounts] = useState(customerAccounts);
+
+  useEffect(() => {
+    getCustomerAccounts()
+      .then((items) => {
+        if (items.length) setAccounts(items);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <SimpleTablePanel
       icon={CreditCard}
@@ -276,7 +510,7 @@ export function CustomerAccountsPanel() {
       detail="Deuda actual, ultimo pago, limite, historial y bloqueo comercial."
       gridClass="account-grid"
       heads={["Cliente", "Deuda", "Ultimo pago", "Limite", "Historial", "Estado"]}
-      rows={customerAccounts.map((account) => [
+      rows={accounts.map((account) => [
         account.customer,
         money(account.debt),
         account.lastPayment,
@@ -290,6 +524,16 @@ export function CustomerAccountsPanel() {
 }
 
 export function RepairsPanel() {
+  const [orders, setOrders] = useState(repairOrders);
+
+  useEffect(() => {
+    getRepairOrders()
+      .then((items) => {
+        if (items.length) setOrders(items);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="grid gap-5">
       <PanelTitle
@@ -299,7 +543,7 @@ export function RepairsPanel() {
         detail="Deja registro profesional de maquina, problema, repuestos, mano de obra y fotos."
       />
       <div className="grid gap-4 xl:grid-cols-3">
-        {repairOrders.map((order) => (
+        {orders.map((order) => (
           <article key={order.id} className="control-card repair-card">
             <div className="flex items-start justify-between gap-3">
               <span className="tag">{order.id}</span>
@@ -328,6 +572,14 @@ export function RepairsPanel() {
 export function TasksPanel() {
   const [tasks, setTasks] = useState(internalTasks);
 
+  useEffect(() => {
+    getInternalTasks()
+      .then((items) => {
+        if (items.length) setTasks(items);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="grid gap-5">
       <PanelTitle
@@ -345,11 +597,13 @@ export function TasksPanel() {
             </div>
             <select
               value={task.status}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextStatus = event.target.value;
                 setTasks((current) =>
-                  current.map((item) => (item.task === task.task ? { ...item, status: event.target.value } : item))
-                )
-              }
+                  current.map((item) => (item.task === task.task ? { ...item, status: nextStatus } : item))
+                );
+                if (task.dbId) updateTaskStatus(task.dbId, nextStatus).catch(() => {});
+              }}
             >
               <option>Pendiente</option>
               <option>En proceso</option>
@@ -363,6 +617,16 @@ export function TasksPanel() {
 }
 
 export function AuditPanel() {
+  const [events, setEvents] = useState(auditEvents);
+
+  useEffect(() => {
+    getAuditEvents()
+      .then((items) => {
+        if (items.length) setEvents(items);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <SimpleTablePanel
       icon={History}
@@ -371,7 +635,7 @@ export function AuditPanel() {
       detail="Precio, stock, descuentos y movimientos importantes con empleado y fecha."
       gridClass="audit-grid"
       heads={["Empleado", "Accion", "Detalle", "Fecha"]}
-      rows={auditEvents.map((event) => [event.employee, event.action, event.detail, event.date])}
+      rows={events.map((event) => [event.employee, event.action, event.detail, event.date])}
     />
   );
 }
