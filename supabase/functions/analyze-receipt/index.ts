@@ -5,6 +5,16 @@ type ReceiptItem = {
   marginPercent?: number;
 };
 
+type OpenAIContent = {
+  type?: string;
+  text?: string;
+};
+
+type OpenAIOutput = {
+  type?: string;
+  content?: OpenAIContent[];
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
@@ -32,6 +42,37 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "supplier_receipt",
+            strict: true,
+            schema: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                supplierName: { type: "string" },
+                receiptNumber: { type: "string" },
+                receiptDate: { type: "string" },
+                total: { type: "number" },
+                items: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    properties: {
+                      productName: { type: "string" },
+                      quantity: { type: "number" },
+                      unitCost: { type: "number" }
+                    },
+                    required: ["productName", "quantity", "unitCost"]
+                  }
+                }
+              },
+              required: ["supplierName", "receiptNumber", "receiptDate", "total", "items"]
+            }
+          }
+        },
         input: [
           {
             role: "user",
@@ -39,7 +80,11 @@ Deno.serve(async (req) => {
               {
                 type: "input_text",
                 text:
-                  "Extrae de este remito de proveedor: proveedor, fecha, numero de remito y productos. Devuelve SOLO JSON valido con forma { supplierName, receiptNumber, receiptDate, items:[{productName, quantity, unitCost}] }. Si un dato no aparece, usa string vacio o 0. " +
+                  "Extrae de este remito de proveedor argentino: proveedor, fecha, numero de remito/factura, total y productos. " +
+                  "Para cada producto devuelve nombre, cantidad y costo unitario sin simbolo de moneda. " +
+                  "Si solo aparece total de linea, estima unitCost dividiendo por cantidad. " +
+                  "Ignora IVA, percepciones, subtotales, descuentos generales y texto legal. " +
+                  "Si un dato no aparece, usa string vacio o 0. " +
                   (textHint ? `Texto adicional: ${textHint}` : "")
               },
               { type: "input_image", image_url: imageDataUrl, detail: "high" }
@@ -54,8 +99,15 @@ Deno.serve(async (req) => {
     }
 
     const result = await response.json();
-    const outputText = result.output_text || "";
-    const parsed = JSON.parse(outputText.replace(/^```json|```$/g, "").trim());
+    const outputText =
+      result.output_text ||
+      (result.output || [])
+        .flatMap((item: OpenAIOutput) => item.content || [])
+        .filter((content: OpenAIContent) => content.type === "output_text" || content.text)
+        .map((content: OpenAIContent) => content.text || "")
+        .join("");
+
+    const parsed = JSON.parse(outputText.trim());
     const items: ReceiptItem[] = (parsed.items || []).map((item: ReceiptItem) => ({
       productName: item.productName || "",
       quantity: Number(item.quantity || 0),
