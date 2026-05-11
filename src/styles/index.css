@@ -674,6 +674,55 @@ body {
     @apply border-red-400/40 bg-red-500/10 text-red-200;
   }
 
+  .attendance-panel {
+    @apply grid gap-5;
+  }
+
+  .admin-date-input {
+    @apply min-h-12 border border-white/10 bg-black/20 px-4 py-3 text-sm font-black text-white outline-none focus:border-reyred;
+  }
+
+  .attendance-layout {
+    @apply grid gap-4 xl:grid-cols-[360px_1fr];
+  }
+
+  .attendance-list {
+    @apply mt-4 grid gap-3;
+  }
+
+  .attendance-row {
+    @apply grid gap-3 border border-white/10 bg-black/20 p-4;
+  }
+
+  .attendance-row strong {
+    @apply block font-display text-lg font-black text-white;
+  }
+
+  .attendance-row span {
+    @apply text-xs font-bold text-white/55;
+  }
+
+  .attendance-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .attendance-actions button,
+  .attendance-actions select {
+    @apply inline-flex min-h-10 items-center gap-2 border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-white/70 outline-none transition hover:border-reyred hover:text-white;
+  }
+
+  .attendance-actions option {
+    @apply bg-graphite text-white;
+  }
+
+  .attendance-times {
+    @apply grid gap-2 sm:grid-cols-3;
+  }
+
+  .attendance-times span {
+    @apply border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-black text-white/65;
+  }
+
   .finance-table-top {
     @apply flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between;
   }

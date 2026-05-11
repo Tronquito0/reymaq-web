@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { crmInquiries, employees, promoItems, salesMetrics } from "../data/adminData";
+import AttendancePanel from "./AttendancePanel";
 import BusinessFinancePanel from "./BusinessFinancePanel";
 import DailyCashPanel from "./DailyCashPanel";
 import ProductAdminPanel from "./ProductAdminPanel";
@@ -23,6 +24,7 @@ const tabs = [
   { id: "stock", label: "Stock", icon: Boxes },
   { id: "daily-cash", label: "Carga diaria", icon: ClipboardCheck },
   { id: "finance", label: "Finanzas", icon: CircleDollarSign },
+  { id: "attendance", label: "Presentismo", icon: CheckCircle2 },
   { id: "crm", label: "CRM", icon: Headphones },
   { id: "promos", label: "Promos", icon: BadgePercent },
   { id: "reports", label: "Reportes", icon: BarChart3 },
@@ -97,6 +99,8 @@ export default function BusinessControlCenter() {
             {activeTab === "daily-cash" && <DailyCashPanel />}
 
             {activeTab === "finance" && <BusinessFinancePanel />}
+
+            {activeTab === "attendance" && <AttendancePanel />}
 
             {activeTab === "crm" && (
               <div className="grid gap-4">
