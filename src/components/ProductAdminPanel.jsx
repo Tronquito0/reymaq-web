@@ -46,6 +46,19 @@ export default function ProductAdminPanel() {
   const [savingId, setSavingId] = useState("");
   const [notice, setNotice] = useState("");
 
+  const refreshProducts = ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    getAdminProducts()
+      .then((items) => {
+        setProducts(items);
+        setSelectedProductId((current) => current || items[0]?.id || "");
+      })
+      .catch((error) => setNotice(error.message))
+      .finally(() => {
+        if (!silent) setLoading(false);
+      });
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -62,14 +75,18 @@ export default function ProductAdminPanel() {
   useEffect(() => {
     if (!session) return;
 
-    setLoading(true);
-    getAdminProducts()
-      .then((items) => {
-        setProducts(items);
-        setSelectedProductId(items[0]?.id || "");
+    refreshProducts();
+
+    const channel = supabase
+      .channel("admin-products-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+        refreshProducts({ silent: true });
       })
-      .catch((error) => setNotice(error.message))
-      .finally(() => setLoading(false));
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session]);
 
   const departments = useMemo(() => {
