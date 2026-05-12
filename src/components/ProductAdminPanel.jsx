@@ -211,6 +211,28 @@ export default function ProductAdminPanel() {
     }
   };
 
+  const unhideAllProducts = async () => {
+    const hiddenProducts = products.filter((product) => !product.isActive);
+    if (!hiddenProducts.length) {
+      setNotice("No hay productos ocultos para desocultar.");
+      return;
+    }
+
+    setSavingId("unhide-all");
+    setNotice("");
+    try {
+      const saved = await Promise.all(hiddenProducts.map((product) => updateProduct({ ...product, isActive: true })));
+      setProducts((current) =>
+        current.map((product) => saved.find((item) => item.id === product.id) || product)
+      );
+      setNotice(`Desocultados ${saved.length} productos.`);
+    } catch (error) {
+      setNotice(error.message);
+    } finally {
+      setSavingId("");
+    }
+  };
+
   const toggleSelected = (productId) => {
     setSelectedIds((current) =>
       current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]
@@ -366,6 +388,9 @@ export default function ProductAdminPanel() {
             </button>
             <button type="button" onClick={() => applyBulkPatch({ isActive: true }, "Publicados")} className="btn btn-outline-light">
               Publicar
+            </button>
+            <button type="button" onClick={unhideAllProducts} className="btn btn-primary" disabled={savingId === "unhide-all"}>
+              Desocultar todos
             </button>
             <button type="button" onClick={() => applyBulkPatch({ isActive: false }, "Ocultados")} className="btn btn-outline-light">
               Ocultar
